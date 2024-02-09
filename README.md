@@ -1,2 +1,2 @@
 # SavvychefReceipeAi
-Ai Based  Food Receipe Suggestion React Application
+Ai Based  Food Recipe Suggestion React Application
