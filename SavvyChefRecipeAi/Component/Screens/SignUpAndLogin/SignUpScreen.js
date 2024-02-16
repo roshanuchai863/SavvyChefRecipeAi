@@ -119,7 +119,7 @@ const SignUpScreen = ({ navigation }) => {
   return (
 
 
-    <ImageBackground source={GbStyle.SignUpScreenBg} resizeMode='cover' blurRadius={3.5} style={styles.backgroundImage}>
+    <ImageBackground source={GbStyle.SignUpScreenBg} resizeMode='cover' blurRadius={1} style={styles.backgroundImage}>
       <SafeAreaView>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
@@ -191,7 +191,7 @@ const SignUpScreen = ({ navigation }) => {
 
 
               <View style={styles.registerNavigation}>
-                <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+                <TouchableOpacity onPress={() => navigation.navigate("loginScreen")}>
                   <Text style={GbStyle.NormalText}>Already have an account?<Text style={{color:"#FFB000", fontWeight:700}}> Login</Text></Text>
                 </TouchableOpacity>
               </View>
