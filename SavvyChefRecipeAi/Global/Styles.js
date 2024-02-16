@@ -119,9 +119,10 @@ const solidButton = {
 };
 
 const Styles = {
-
+    
     welcomeScreenBg: require("../assets/images/WelcomeScreenBg.jpg"),
    SignUpScreenBg: require("../assets/images/RegisterBg.jpg"),
+   LogInScreenBg: require("../assets/images/LoginBg.jpg"),
     panFryImage: require("../assets/pngegg.png"),
 
     colors,

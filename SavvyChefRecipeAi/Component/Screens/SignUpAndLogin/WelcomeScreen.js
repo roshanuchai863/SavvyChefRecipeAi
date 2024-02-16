@@ -11,7 +11,7 @@ const WelcomeScreen = ({ navigation }) => {
 
     return (
 
-        <ImageBackground source={GbStyle.welcomeScreenBg} resizeMode='cover' blurRadius={4} style={styles.bgImage} >
+        <ImageBackground source={GbStyle.welcomeScreenBg} resizeMode='cover' blurRadius={1} style={styles.bgImage} >
             <SafeAreaView style={styles.container}>
 
                 <View style={styles.headertextContainer}>
@@ -37,7 +37,7 @@ const WelcomeScreen = ({ navigation }) => {
 
 
 
-                    <TouchableOpacity onPress={() => navigation.navigate("Login")} style={[GbStyle.solidButton, { marginVertical: 20 }]}>
+                    <TouchableOpacity onPress={() => navigation.navigate("loginScreen")} style={[GbStyle.solidButton, { marginVertical: 20 }]}>
                         <Text style={GbStyle.ButtonColorAndFontSize} >Login</Text>
                     </TouchableOpacity>
 
