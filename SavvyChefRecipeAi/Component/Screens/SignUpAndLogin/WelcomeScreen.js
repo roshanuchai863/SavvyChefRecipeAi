@@ -2,16 +2,12 @@ import React from 'react'
 import { Text, StyleSheet, View, Image, TouchableOpacity, ImageBackground, Button, SafeAreaView } from "react-native"
 import { AntDesign } from '@expo/vector-icons';
 import GbStyle from "../../../Global/Styles"
-import {
-    FIREBASE_API_KEY} from "@env"
 
 const WelcomeScreen = ({ navigation }) => {
 
-    console.log("Firebase key", FIREBASE_API_KEY)
-
     return (
 
-        <ImageBackground source={GbStyle.welcomeScreenBg} resizeMode='cover' blurRadius={1} style={styles.bgImage} >
+        <ImageBackground source={GbStyle.welcomeScreenBg} resizeMode='cover' blurRadius={3} style={styles.bgImage} >
             <SafeAreaView style={styles.container}>
 
                 <View style={styles.headertextContainer}>
@@ -49,7 +45,7 @@ const WelcomeScreen = ({ navigation }) => {
                 <View style={styles.SocialbtnContainer}>
 
                     <TouchableOpacity style={GbStyle.transparentButton} >
-                        <Text style={[GbStyle.ButtonColorAndFontSize,{ fontSize: 22}]} >
+                        <Text style={[GbStyle.ButtonColorAndFontSize, { fontSize: 22 }]} >
                             <AntDesign name="google" size={28} color="white" style={{ marginHorizontal: 10 }} />
                             Register with Google</Text>
                     </TouchableOpacity >
