@@ -119,7 +119,7 @@ const SignUpScreen = ({ navigation }) => {
   return (
 
 
-    <ImageBackground source={GbStyle.SignUpScreenBg} resizeMode='cover' blurRadius={1} style={styles.backgroundImage}>
+    <ImageBackground source={GbStyle.SignUpScreenBg} resizeMode='cover' blurRadius={3} style={styles.backgroundImage}>
       <SafeAreaView>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>

@@ -16,7 +16,7 @@ const colors = {
         red: "red",
         black: "black",
         grey: "#C8C8C8",
- 
+
         white: "#ffffff",
         borderColor: "#F5F5DC"
     },
@@ -26,15 +26,15 @@ const colors = {
         red: "red",
         black: "black",
         grey: "#C8C8C8",
-   
+
         white: "#ffffff"
     }
 };
 
 
-const inputText={
+const inputText = {
     fontSize: 20,
-    color:colors.textColors.white
+    color: colors.textColors.white
 }
 
 const titles = {
@@ -60,12 +60,12 @@ const transparentButton = {
     justifyContent: "center",
     borderColor: colors.buttonColors.borderColor,
     borderWidth: 2,
-    
+
 
 };
 
 
-const ButtonColorAndFontSize ={
+const ButtonColorAndFontSize = {
     fontSize: 25,
     color: colors.buttonText.white
 
@@ -111,7 +111,6 @@ const solidButton = {
     borderRadius: 7.5,
     alignItems: "center",
     justifyContent: "center",
-    // borderColor: "#F5F5DC",
     borderColor: colors.buttonColors.borderColor,
     borderWidth: 2,
     fontSize: 23,
@@ -119,10 +118,12 @@ const solidButton = {
 };
 
 const Styles = {
-    
+
     welcomeScreenBg: require("../assets/images/WelcomeScreenBg.jpg"),
-   SignUpScreenBg: require("../assets/images/RegisterBg.jpg"),
-   LogInScreenBg: require("../assets/images/LoginBg.jpg"),
+    forgotPasswordBg: require("../assets/images/forgotPasswordBg.jpg"),
+    SignUpScreenBg: require("../assets/images/RegisterBg.jpg"),
+    LogInScreenBg: require("../assets/images/LoginBg.jpg"),
+    resetSuccessBg: require("../assets/images/resetSuccessBg.jpg"),
     panFryImage: require("../assets/pngegg.png"),
 
     colors,

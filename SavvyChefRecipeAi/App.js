@@ -10,7 +10,7 @@ import LoginScreen from "./Component/Screens/SignUpAndLogin/LoginScreen";
 import SignUpScreen from "./Component/Screens/SignUpAndLogin/SignUpScreen";
 import ResetPassword from "./Component/Screens/SignUpAndLogin/ResetPassword";
 import HomeScreen from "./Component/Screens/HomeScreen";
-
+import ResetSuccess from './Component/Screens/SignUpAndLogin/ResetSuccess';
 
 
 
@@ -21,12 +21,13 @@ export default function App() {
   return (
 <NavigationContainer>
 
-<Stack.Navigator initialRouteName='loginScreen'>
+<Stack.Navigator initialRouteName='resetSuccess'>
   <Stack.Screen name='welcomeScreen' component={WelcomeScreen}  options={{headerShown:false}}/>
   <Stack.Screen name='loginScreen' component={LoginScreen} options={{headerShown:false}}/>
   <Stack.Screen name='signUpScreen' component={SignUpScreen} options={{headerShown:false}}/>
   <Stack.Screen name='resetPassword' component={ResetPassword} options={{headerShown:false}}/>
   <Stack.Screen name='homeScreen' component={HomeScreen} options={{headerShown:false}}/>
+  <Stack.Screen name='resetSuccess' component={ResetSuccess} options={{headerShown:false}}/>
 
 </Stack.Navigator>
 
