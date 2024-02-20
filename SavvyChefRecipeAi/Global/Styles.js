@@ -108,7 +108,7 @@ const solidButton = {
     width: "80%",
     height: 70,
     backgroundColor: colors.buttonColors.primary,
-    borderRadius: 7.5,
+    borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
     borderColor: colors.buttonColors.borderColor,
