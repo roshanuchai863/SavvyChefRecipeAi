@@ -13,6 +13,7 @@ import HomeScreen from "./Component/Screens/HomeScreen";
 import ResetSuccess from './Component/Screens/SignUpAndLogin/ResetSuccess';
 import ProfileScreen from './Component/Screens/User/ProfileScreen';
 import EditProfile from './Component/Screens/User/EditProfile';
+import ImageUpload from './Component/Screens/UploadImage';
 const Stack = createNativeStackNavigator();
 
 
@@ -29,6 +30,7 @@ export default function App() {
   <Stack.Screen name='resetSuccess' component={ResetSuccess} options={{headerShown:false}}/>
   <Stack.Screen name='profileScreen' component={ProfileScreen} options={{headerShown:false}}/>
   <Stack.Screen name='editProfile' component={EditProfile} options={{headerShown:false}}/>
+  <Stack.Screen name='imageUpload' component={ImageUpload} options={{headerShown:false}}/>
 
 </Stack.Navigator>
 

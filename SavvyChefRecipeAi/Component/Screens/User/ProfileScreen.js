@@ -98,7 +98,7 @@ const ProfileScreen = ({ navigation }) => {
                 <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18, fontWeight: "bold" }]}>
                   Contact
                 </Text>
-                <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18, marginVertical: 8 }]}>
+                <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18 }]}>
                   {contact}
                 </Text>
 
@@ -110,8 +110,7 @@ const ProfileScreen = ({ navigation }) => {
             <View style={[styles.DetailContainer, { maringTop: 10 }]}>
 
               <View style={styles.iconContainer}>
-                <MaterialIcons name="password" size={28} color="#625D5D" />
-                {/* <AntDesign name="mail" size={28} color="#625D5D" /> */}
+              <AntDesign name="lock" size={28} color="#625D5D" />
               </View>
               <View style={styles.PersonDetails}>
 
@@ -214,8 +213,8 @@ const styles = StyleSheet.create({
   iconContainer: {
     borderWidth: 2,
     borderColor: "#EE7214",
-    marginRight: 20,
     alignItems: 'center',
+
     alignContent: "center",
     justifyContent: "center",
     padding: 13,
@@ -227,7 +226,6 @@ const styles = StyleSheet.create({
   PersonDetails: {
     width: "100%",
     flexDirection: "column",
-
 
   },
 

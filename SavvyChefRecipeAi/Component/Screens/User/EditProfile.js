@@ -6,16 +6,22 @@ import { Ionicons } from '@expo/vector-icons';
 import { Octicons } from '@expo/vector-icons';
 import { MaterialIcons } from '@expo/vector-icons';
 import GbStyle from "../../../Global/Styles"
+import ImageUpload from '../UploadImage';
 
-const EditProfile = ({ navigation }) => {
+
+
+
+const EditProfile = ({ navigation, ProfileImage,onUpload  }) => {
 
   const [Email, SetEmail] = useState("9221@ait.nsw.edu.au");
   const [password, SetPassword] = useState("abcd");
   const [userName, SetUsername] = useState("Roshan Uchai");
   const [contact, setContact] = useState("0441112233")
-  const [profile, setProfile] = useState("")
+  const [profile, setProfile] =  useState(""); //http://tinyurl.com/rj5jm9br
   const [secureText, SetSecureText] = useState(true);
   const [PasswordVisbile, setPasswordVisible] = useState("eye-off-outline");
+  const [modalVisible, setModalVisible] = useState(false);  // upload image  modal
+  const [profileImageUrl, setProfileImageUrl] = useState('');
 
   const passwordVisible = () => {
 
@@ -34,6 +40,18 @@ const EditProfile = ({ navigation }) => {
       setPasswordVisible("eye-off-outline")
     }
   }
+  
+  const handleImageUpload = (url) => {
+    setProfile(url);
+    setModalVisible(false);
+
+    console.warn("Url of iamge: " , profile)
+    console.console("Url of : " , url)
+  };
+
+
+
+
 
   return (
     <SafeAreaView >
@@ -41,9 +59,12 @@ const EditProfile = ({ navigation }) => {
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <View style={styles.container}>
             <View style={styles.ProfileImage}>
-              <Image source={{ uri: "http://tinyurl.com/rj5jm9br" }} style={styles.ProfileView} resizeMode={"cover"} />
+              <Image source={{ uri:profile}} style={styles.ProfileView} resizeMode={"cover"} />
               <View style={styles.cameraIconContainer}>
+                <TouchableOpacity onPress={() => setModalVisible(true)}>
                 <AntDesign name="camera" size={30} color="#EE7214" style={styles.cameraIcon} />
+               
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -76,7 +97,7 @@ const EditProfile = ({ navigation }) => {
               <Text style={[GbStyle.NormalText, { textAlign: "left", alignSelf: "flex-start", color: "#000000" }]}>Password</Text>
 
               <View style={styles.inputFieldcontainer}>
-                <MaterialIcons name="password" size={28} color="#625D5D" />
+              <AntDesign name="lock" size={28} color="#625D5D" />
                 <TextInput value={password} placeholder={password} placeholderTextColor={"#000000"} onChangeText={SetPassword} secureTextEntry={secureText} autoComplete='off' style={[GbStyle.inputText, { width: "90%", marginLeft: 10, color: "black" }]} />
 
                 <TouchableOpacity onPress={passwordVisible}>
@@ -95,6 +116,9 @@ const EditProfile = ({ navigation }) => {
               </TouchableOpacity>
             </View>
 
+      {/* ImageUpload modal */}
+      <ImageUpload isVisible={modalVisible} onClose={() => setModalVisible(false)} onUpload={handleImageUpload} />
+   
           </View>
 
         </KeyboardAvoidingView>
