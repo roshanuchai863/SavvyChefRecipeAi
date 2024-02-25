@@ -1,11 +1,23 @@
 import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import React, { useEffect } from 'react'
+import { auth, db } from "../../Firebase/Config"
 
-const HomeScreen = () => {
+
+
+
+
+const HomeScreen = ({ navigation }) => {
+  const userId = auth.currentUser ? auth.currentUser.uid : null;
+
+useEffect(()=>{
+
+  console.log("userID", userId)
+  navigation.navigate("profileScreen")
+})
+
   return (
-    <View>
-      <Text>HomeScreen</Text>
-    </View>
+
+    <Text></Text>
   )
 }
 

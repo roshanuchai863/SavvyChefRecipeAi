@@ -5,27 +5,30 @@ import { Ionicons } from '@expo/vector-icons';
 import { Platform } from 'react-native';
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../../../Firebase/Config"
-import { doc, setDoc } from "firebase/firestore";
+import { collection, setDoc, doc } from "firebase/firestore";
 import GbStyle from "../../../Global/Styles"
+import { sendEmailVerification, emailVerified } from "firebase/auth";
+
+import ProfileDefaultImage from "../../../assets/images/user.png"
 
 
 const SignUpScreen = ({ navigation }) => {
-  const [Email, SetEmail] = useState("");
-  const [password, SetPassword] = useState("");
-  const [confirmpassword, SetConfirmPassword] = useState("");
-  const [userName, SetUsername] = useState("");
+  const [Email, SetEmail] = useState("thakuriroshan863@gmail.com");
+  const [password, SetPassword] = useState("Roshanmalal24");
+  const [confirmpassword, SetConfirmPassword] = useState("Roshanmalal24");
+  const [userName, SetUsername] = useState("Roshan Uchai");
   const [secureText, SetSecureText] = useState(true);
   const [PasswordVisbile, setPasswordVisible] = useState("eye-off-outline");
 
-  useEffect(() => {
-    // Initialiser le formulaire
-    SetEmail("");
-    SetPassword("");
-    SetConfirmPassword("");
-    SetUsername("")
+  // useEffect(() => {
+  //   // Initialiser le formulaire
+  //   SetEmail("");
+  //   SetPassword("");
+  //   SetConfirmPassword("");
+  //   SetUsername("")
 
-  }, []);
- 
+  // }, []);
+
 
 
   const passwordVisible = () => {
@@ -70,144 +73,161 @@ const SignUpScreen = ({ navigation }) => {
       Alert.alert("Warning!!", "Your password did Matched");
     }
 
-    else {
+    
 
-      createUserWithEmailAndPassword(auth, Email, password)
-        .then((userCredential) => {
-          // Signed In 
-          console.log("login Success")
-          const user = userCredential.user;
-          console.log("login Success " + user.uid)
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, Email, password);
+      // Since we're in an async function, we can use await directly.
+      await sendEmailVerification(userCredential.user);
 
-          setDoc(doc(db, "perosnal Details", user.uid), {
-            name: userName,
-            Email: Email,
-            Subscription: "Free",
-            ImageProfile: ""
+      console.log("Login Success");
+      // It's better to sign out after all async operations are complete.
+      await auth.signOut();
+      alert("Email sent");
+
+      const user = userCredential.user;
+      console.log("Login Success " + user.uid);
+
+      
+      const userData = {
+        Payment: {
+          SubscriptionStatus: "Free",
+          SubscriptionDate: "",  // Use Firestore's Timestamp for actual dates
+          Limit: 20
+        },
+
+        UserDetails: {
+          userName: "Roshan Uchai",
+          Email: "thakuriroshan863@gmail.com",
+          Phone: "",
+          ProfileImage: "ProfileDefaultImage"
+        }}
+      
+ 
+      const paymentCollectionRef = doc(db, "Personal Details", user.uid);
+      await setDoc(paymentCollectionRef, userData);
+
+      console.log("Document written with ID: ", user.uid);
 
 
-          });
 
+      // After successful registration and operations, navigate or perform next actions.
+    } catch (error) {
+      console.log("Login failed", error);
+      const errorCode = error.code;
+      const errorMessage = error.message;
+    
 
-          navigation.navigate("welcomeScreen")
-        })
-        .catch((error) => {
+    if (errorMessage.includes("auth/invalid-email")) {
+      Alert.alert("Warning!", "You have Invalid Email", errorMessage);
+    }
 
-          console.log("login failed", error)
-          const errorCode = error.code;
-          const errorMessage = error.message;
+    else if (errorMessage.includes("auth/weak-password")) {
+      Alert.alert("Warning!", "Password should be at least 6 characters");
+      return;
+    }
 
-
-          if (errorMessage.includes("auth/invalid-email")) {
-            Alert.alert("Warning!", "You have Invalid Email", errorMessage);
-          }
-
-          else if (errorMessage.includes("auth/weak-password")) {
-            Alert.alert("Warning!", "Password should be at least 6 characters");
-            return;
-          }
-
-          else if (errorMessage.includes("auth/email-already-in-use")) {
-            Alert.alert("Warning!", "Your Email Already Exist");
-          }
-
-        });
+    else if (errorMessage.includes("auth/email-already-in-use")) {
+      Alert.alert("Warning!", "Your Email Already Exist");
     }
   }
+  };
+
+ 
 
 
   return (
 
 
-    <ImageBackground source={GbStyle.SignUpScreenBg} resizeMode='cover' blurRadius={3} style={styles.backgroundImage}>
-      <SafeAreaView>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-          <ScrollView>
+  <ImageBackground source={GbStyle.SignUpScreenBg} resizeMode='cover' blurRadius={3} style={styles.backgroundImage}>
+    <SafeAreaView>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <ScrollView>
 
-            <View style={styles.MainContainer}>
-              <View style={styles.headertextContainer}>
+          <View style={styles.MainContainer}>
+            <View style={styles.headertextContainer}>
 
-                <TouchableOpacity onPress={() => navigation.navigate("welcomeScreen")}>
-                  <AntDesign name="arrowleft" size={28} color="white" />
-                </TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate("welcomeScreen")}>
+                <AntDesign name="arrowleft" size={28} color="white" />
+              </TouchableOpacity>
 
-                <Text style={GbStyle.mainTitle}>Register</Text>
-                <Text style={[GbStyle.NormalText, { textAlign: "left", width: '100%' }]}>Create an account to access thousands of Food Recipes</Text>
-              </View>
+              <Text style={GbStyle.mainTitle}>Register</Text>
+              <Text style={[GbStyle.NormalText, { textAlign: "left", width: '100%' }]}>Create an account to access thousands of Food Recipes</Text>
+            </View>
 
-              <View style={styles.inputFieldContainer}>
+            <View style={styles.inputFieldContainer}>
 
-                <Text style={[GbStyle.NormalText, { textAlign: "left" }]}>Email</Text>
+              <Text style={[GbStyle.NormalText, { textAlign: "left" }]}>Email</Text>
 
-                <View style={[styles.inputFieldcontainer]}>
-                  <AntDesign name="mail" size={28} color="white" />
-                  <TextInput value={Email} placeholder="Ex: abc@example.com" placeholderTextColor={"#ffffff"} onChangeText={SetEmail} style={[GbStyle.inputText, { width: "90%", marginLeft: 10 }]} />
-
-                </View>
-
-
-                <Text style={[GbStyle.NormalText, { textAlign: "left" }]}>Your Name</Text>
-                <View style={styles.inputFieldcontainer}>
-                  <AntDesign name="mail" size={28} color="white" />
-                  <TextInput value={userName} placeholder="Ex. Roshan Uchai" placeholderTextColor={"#ffffff"} onChangeText={SetUsername} style={[GbStyle.inputText, { width: "90%", marginLeft: 10 }]} />
-                </View>
-
-
-                <Text style={[GbStyle.NormalText, { textAlign: "left" }]}>Password</Text>
-
-                <View style={styles.inputFieldcontainer}>
-                  <AntDesign name="lock" size={28} color="white" />
-                  <TextInput value={password} placeholder="........." placeholderTextColor={"#ffffff"} onChangeText={SetPassword} secureTextEntry={secureText} autoComplete='off' style={[GbStyle.inputText, { width: "90%", marginLeft: 10 }]} />
-
-                  <TouchableOpacity onPress={passwordVisible}>
-                    <Ionicons name={PasswordVisbile} size={28} color="white" style={{marginLeft:-20}}/>
-                  </TouchableOpacity>
-                </View>
-
-                <Text style={[GbStyle.NormalText, { textAlign: "left" }]}>Confirm Password</Text>
-
-                <View style={styles.inputFieldcontainer}>
-
-                  <AntDesign name="lock" size={28} color="white" />
-
-                  <TextInput value={confirmpassword} placeholder="........." placeholderTextColor={"#ffffff"} onChangeText={SetConfirmPassword} secureTextEntry={secureText} autoComplete='off' style={[GbStyle.inputText, { width: "90%", marginLeft: 10 }]} />
-
-                  <TouchableOpacity onPress={passwordVisible}>
-                    <Ionicons name={PasswordVisbile} size={28} color="white" style={{marginLeft:-20}}/>
-                  </TouchableOpacity>
-                </View>
+              <View style={[styles.inputFieldcontainer]}>
+                <AntDesign name="mail" size={28} color="white" />
+                <TextInput value={Email} placeholder="Ex: abc@example.com" placeholderTextColor={"#ffffff"} onChangeText={SetEmail} style={[GbStyle.inputText, { width: "90%", marginLeft: 10 }]} />
 
               </View>
 
 
+              <Text style={[GbStyle.NormalText, { textAlign: "left" }]}>Your Name</Text>
+              <View style={styles.inputFieldcontainer}>
+                <AntDesign name="mail" size={28} color="white" />
+                <TextInput value={userName} placeholder="Ex. Roshan Uchai" placeholderTextColor={"#ffffff"} onChangeText={SetUsername} style={[GbStyle.inputText, { width: "90%", marginLeft: 10 }]} />
+              </View>
 
-              <View style={styles.btnContainer}>
 
-                <TouchableOpacity onPress={handleLogin} style={GbStyle.solidButton}>
-                  <Text style={GbStyle.ButtonColorAndFontSize} >Register</Text>
+              <Text style={[GbStyle.NormalText, { textAlign: "left" }]}>Password</Text>
+
+              <View style={styles.inputFieldcontainer}>
+                <AntDesign name="lock" size={28} color="white" />
+                <TextInput value={password} placeholder="........." placeholderTextColor={"#ffffff"} onChangeText={SetPassword} secureTextEntry={secureText} autoComplete='off' style={[GbStyle.inputText, { width: "90%", marginLeft: 10 }]} />
+
+                <TouchableOpacity onPress={passwordVisible}>
+                  <Ionicons name={PasswordVisbile} size={28} color="white" style={{ marginLeft: -20 }} />
                 </TouchableOpacity>
               </View>
 
+              <Text style={[GbStyle.NormalText, { textAlign: "left" }]}>Confirm Password</Text>
 
-              <View style={styles.registerNavigation}>
-                <TouchableOpacity onPress={() => navigation.navigate("loginScreen")}>
-                  <Text style={GbStyle.NormalText}>Already have an account?<Text style={{color:"#FFB000", fontWeight:700}}> Login</Text></Text>
+              <View style={styles.inputFieldcontainer}>
+
+                <AntDesign name="lock" size={28} color="white" />
+
+                <TextInput value={confirmpassword} placeholder="........." placeholderTextColor={"#ffffff"} onChangeText={SetConfirmPassword} secureTextEntry={secureText} autoComplete='off' style={[GbStyle.inputText, { width: "90%", marginLeft: 10 }]} />
+
+                <TouchableOpacity onPress={passwordVisible}>
+                  <Ionicons name={PasswordVisbile} size={28} color="white" style={{ marginLeft: -20 }} />
                 </TouchableOpacity>
               </View>
-
-
-
 
             </View>
 
-          </ScrollView>
-        </KeyboardAvoidingView>
-
-      </SafeAreaView></ImageBackground>
 
 
-  )
+            <View style={styles.btnContainer}>
+
+              <TouchableOpacity onPress={handleLogin} style={GbStyle.solidButton}>
+                <Text style={GbStyle.ButtonColorAndFontSize} >Register</Text>
+              </TouchableOpacity>
+            </View>
+
+
+            <View style={styles.registerNavigation}>
+              <TouchableOpacity onPress={() => navigation.navigate("loginScreen")}>
+                <Text style={GbStyle.NormalText}>Already have an account?<Text style={{ color: "#FFB000", fontWeight: 700 }}> Login</Text></Text>
+              </TouchableOpacity>
+            </View>
+
+
+
+
+          </View>
+
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+    </SafeAreaView></ImageBackground>
+
+
+   )
 
 }
 

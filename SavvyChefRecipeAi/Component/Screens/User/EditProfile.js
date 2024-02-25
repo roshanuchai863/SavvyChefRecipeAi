@@ -4,66 +4,133 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { AntDesign } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
 import { Octicons } from '@expo/vector-icons';
-import { MaterialIcons } from '@expo/vector-icons';
 import GbStyle from "../../../Global/Styles"
 import ImageUpload from '../UploadImage';
+import { auth, db, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "../../../Firebase/Config"
+import { doc, setDoc, updateDoc } from "firebase/firestore";
 
 
+const EditProfile = ({ navigation, onUpload, route }) => {
 
-
-const EditProfile = ({ navigation, ProfileImage,onUpload  }) => {
-
-  const [Email, SetEmail] = useState("9221@ait.nsw.edu.au");
-  const [password, SetPassword] = useState("abcd");
-  const [userName, SetUsername] = useState("Roshan Uchai");
-  const [contact, setContact] = useState("0441112233")
-  const [profile, setProfile] =  useState(""); //http://tinyurl.com/rj5jm9br
+  const [currentPasswordVisible, SetcurrentPasswordVisible] = useState("eye-off-outline");
+  const [newPasswordVisible, SetNewPasswordVisible] = useState("eye-off-outline");
+  const [currentPassword, SetCurrentPassword] = useState("abcd");
+  const [newPassword, SetNewPassword] = useState("abcd");
+  const [firstName, SetFirstname] = useState("");
+  const [lastName, SetLastname] = useState("");
+  const [contact, setContact] = useState("")
+  const [profile, setProfile] = useState("");
   const [secureText, SetSecureText] = useState(true);
-  const [PasswordVisbile, setPasswordVisible] = useState("eye-off-outline");
+  const [newSecureText, SetNewSecureText] = useState(true);
+
   const [modalVisible, setModalVisible] = useState(false);  // upload image  modal
   const [profileImageUrl, setProfileImageUrl] = useState('');
 
-  const passwordVisible = () => {
+  const currentPasswordVisibleIcon = () => {
+    SetSecureText(!secureText);
+    SetcurrentPasswordVisible(secureText ? "eye-outline" : "eye-off-outline");
+  };
 
-    if (PasswordVisbile == "eye-off-outline" && password.length == 0) {
-      Alert.alert("Warning!!", "Your password Field is empty");
-      setPasswordVisible("eye-off-outline")
-    }
-
-    else if (PasswordVisbile == "eye-off-outline") {
-      setPasswordVisible("eye-outline")
-      SetSecureText(false);
-
-    }
-    else {
-      SetSecureText(true);
-      setPasswordVisible("eye-off-outline")
-    }
-  }
-  
-  const handleImageUpload = (url) => {
-    setProfile(url);
-    setModalVisible(false);
-
-    console.warn("Url of iamge: " , profile)
-    console.console("Url of : " , url)
+  const newPasswordVisibleIcon = () => {
+    SetNewSecureText(!newSecureText);
+    SetNewPasswordVisible(newSecureText ? "eye-outline" : "eye-off-outline");
   };
 
 
+  const handleImageUpload = (url) => {
+    setProfile(url);
+    setModalVisible(false);
+  };
+
+  const updateData = async () => {
+    try {
+      console.warn("update userid", auth.currentUser.uid)
+      const userDocRef = doc(db, "Personal Details", auth.currentUser.uid);
+      await updateDoc(userDocRef, {
+        "UserDetails.FirstName": firstName,
+        "UserDetails.LastName": lastName,
+        "UserDetails.Phone": contact
+        // Add other fields as necessary
 
 
+
+      });
+      handlePasswordChange()
+      alert('updating profile');
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      alert('Error updating profile');
+    }
+  }
+
+
+  useEffect(() => {
+
+    const { firstName, lastName, contact, profile, } = route.params;
+
+    setContact(contact),
+      setProfile(profile),
+      SetFirstname(firstName)
+    SetLastname(lastName)
+  }, [route.params])
+
+
+  const reauthenticateUser = async (currentPassword) => {
+
+    const user = auth.currentUser;
+    const credential = EmailAuthProvider.credential(user.email, currentPassword);
+
+    try {
+      await reauthenticateWithCredential(user, credential);
+      return true; // Re-authentication successful
+    } catch (error) {
+      console.error("Re-authentication failed:", error);
+      return false; // Re-authentication failed
+    }
+  };
+
+  const updateUserPassword = async (newPassword) => {
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    try {
+      await updatePassword(user, newPassword);
+      console.log("Password updated successfully.");
+      // Handle post-update logic here, such as displaying a success message
+    } catch (error) {
+      console.error("Password update failed:", error);
+      // Handle errors, such as password not meeting the security requirements
+    }
+  };
+
+  const handlePasswordChange = async (currentPassword, newPassword) => {
+    const isReauthenticated = await reauthenticateUser(currentPassword);
+
+    if (isReauthenticated) {
+      await updateUserPassword(newPassword);
+      alert("Password has been updated.");
+      // Additional actions upon successful update
+    } else {
+      alert("Current password is incorrect.", currentPassword);
+      // Handle incorrect current password case
+    }
+  };
 
   return (
-    <SafeAreaView >
-      <ScrollView>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <SafeAreaView>
+
+        <ScrollView>
           <View style={styles.container}>
+            <TouchableOpacity onPress={() => navigation.navigate("profileScreen")}>
+              <AntDesign name="arrowleft" size={28} color="black" />
+            </TouchableOpacity>
             <View style={styles.ProfileImage}>
-              <Image source={{ uri:profile}} style={styles.ProfileView} resizeMode={"cover"} />
+              <Image source={profile ? { uri: profile } : GbStyle.ProfileIcon} style={styles.ProfileView} resizeMode={"cover"} />
               <View style={styles.cameraIconContainer}>
                 <TouchableOpacity onPress={() => setModalVisible(true)}>
-                <AntDesign name="camera" size={30} color="#EE7214" style={styles.cameraIcon} />
-               
+                  <AntDesign name="camera" size={30} color="#EE7214" style={styles.cameraIcon} />
+
                 </TouchableOpacity>
               </View>
             </View>
@@ -71,37 +138,47 @@ const EditProfile = ({ navigation, ProfileImage,onUpload  }) => {
 
             <View style={styles.inputFieldContainer}>
 
-              <Text style={[GbStyle.NormalText, { textAlign: "left", alignSelf: "flex-start", color: "#000000" }]}>Your Name</Text>
+              <Text style={[GbStyle.NormalText, { textAlign: "left", alignSelf: "flex-start", color: "#000000" }]}>First Name</Text>
               <View style={styles.inputFieldcontainer}>
                 <Octicons name="person" size={28} color="#625D5D" />
-                <TextInput value={userName} placeholder="Roshan Uchai" placeholderTextColor={"#000000"} onChangeText={SetUsername} style={[GbStyle.inputText, { width: "90%", marginLeft: 10, color: "black" }]} />
+                <TextInput value={firstName} placeholder="Roshan Uchai" placeholderTextColor={"#000000"} onChangeText={SetFirstname} style={[GbStyle.inputText, { width: "90%", marginLeft: 10, color: "black" }]} />
               </View>
 
-              <Text style={[GbStyle.NormalText, { textAlign: "left", alignSelf: "flex-start", color: "#000000" }]}>Email</Text>
-
-              <View style={[styles.inputFieldcontainer]}>
-                <AntDesign name="mail" size={28} color="#625D5D" />
-                <TextInput value={Email} placeholder={Email} placeholderTextColor={"#000000"} onChangeText={SetEmail} style={[GbStyle.inputText, { width: "90%", marginLeft: 10, color: "black" }]} />
-
+              <Text style={[GbStyle.NormalText, { textAlign: "left", alignSelf: "flex-start", color: "#000000" }]}>Last Name</Text>
+              <View style={styles.inputFieldcontainer}>
+                <Octicons name="person" size={28} color="#625D5D" />
+                <TextInput value={lastName} placeholder="Roshan Uchai" placeholderTextColor={"#000000"} onChangeText={SetLastname} style={[GbStyle.inputText, { width: "90%", marginLeft: 10, color: "black" }]} />
               </View>
+
+
 
               <Text style={[GbStyle.NormalText, { textAlign: "left", alignSelf: "flex-start", color: "#000000" }]}>Contact</Text>
 
               <View style={[styles.inputFieldcontainer]}>
                 <AntDesign name="phone" size={28} color="#625D5D" />
-                <TextInput value={contact} placeholder={contact} placeholderTextColor={"#000000"} onChangeText={SetEmail} style={[GbStyle.inputText, { width: "90%", marginLeft: 10, color: "black" }]} />
-
+                <TextInput value={contact} placeholder={contact} placeholderTextColor={"#000000"} onChangeText={setContact} style={[GbStyle.inputText, { width: "90%", marginLeft: 10, color: "black" }]} />
               </View>
 
 
-              <Text style={[GbStyle.NormalText, { textAlign: "left", alignSelf: "flex-start", color: "#000000" }]}>Password</Text>
+              <Text style={[GbStyle.NormalText, { textAlign: "left", alignSelf: "flex-start", color: "#000000" }]}>Current Password</Text>
 
               <View style={styles.inputFieldcontainer}>
-              <AntDesign name="lock" size={28} color="#625D5D" />
-                <TextInput value={password} placeholder={password} placeholderTextColor={"#000000"} onChangeText={SetPassword} secureTextEntry={secureText} autoComplete='off' style={[GbStyle.inputText, { width: "90%", marginLeft: 10, color: "black" }]} />
+                <AntDesign name="lock" size={28} color="#625D5D" />
+                <TextInput value={currentPassword} placeholder={currentPassword} placeholderTextColor={"#000000"} onChangeText={SetCurrentPassword} secureTextEntry={secureText} autoComplete='off' style={[GbStyle.inputText, { width: "90%", marginLeft: 10, color: "black" }]} />
 
-                <TouchableOpacity onPress={passwordVisible}>
-                  <Ionicons name={PasswordVisbile} size={28} color="#625D5D" style={{ marginLeft: -20 }} />
+                <TouchableOpacity onPress={currentPasswordVisibleIcon}>
+                  <Ionicons name={currentPasswordVisible} size={28} color="#625D5D" style={{ marginLeft: -20 }} />
+                </TouchableOpacity>
+              </View> 
+
+              <Text style={[GbStyle.NormalText, { textAlign: "left", alignSelf: "flex-start", color: "#000000" }]}>New Password</Text>
+
+              <View style={styles.inputFieldcontainer}>
+                <AntDesign name="lock" size={28} color="#625D5D" />
+                <TextInput value={newPassword} placeholder={newPassword} placeholderTextColor={"#000000"} onChangeText={SetNewPassword} secureTextEntry={newSecureText} autoComplete='off' style={[GbStyle.inputText, { width: "90%", marginLeft: 10, color: "black" }]} />
+
+                <TouchableOpacity onPress={newPasswordVisibleIcon}>
+                  <Ionicons name={newPasswordVisible} size={28} color="#625D5D" style={{ marginLeft: -20 }} />
                 </TouchableOpacity>
               </View>
 
@@ -111,20 +188,21 @@ const EditProfile = ({ navigation, ProfileImage,onUpload  }) => {
 
             <View style={styles.btnContainer}>
 
-              <TouchableOpacity style={GbStyle.solidButton} onPress={() => navigation.navigate("loginScreen")}>
-                <Text style={[GbStyle.ButtonColorAndFontSize]} >Edit Profile</Text>
+              {/* <TouchableOpacity style={GbStyle.solidButton} onPress={() => navigation.navigate("profileScreen")}> */}
+              <TouchableOpacity style={GbStyle.solidButton} onPress={updateData}>
+                <Text style={[GbStyle.ButtonColorAndFontSize]} >Update </Text>
               </TouchableOpacity>
             </View>
 
-      {/* ImageUpload modal */}
-      <ImageUpload isVisible={modalVisible} onClose={() => setModalVisible(false)} onUpload={handleImageUpload} />
-   
+            {/* ImageUpload modal */}
+            <ImageUpload isVisible={modalVisible} onClose={() => setModalVisible(false)} onUpload={handleImageUpload} />
+
           </View>
+        </ScrollView>
 
-        </KeyboardAvoidingView>
-      </ScrollView>
-    </SafeAreaView>
 
+      </SafeAreaView>
+    </KeyboardAvoidingView>
 
 
 

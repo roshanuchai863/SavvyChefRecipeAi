@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import { getAuth, initializeAuth, getReactNativePersistence, onAuthStateChanged,updatePassword ,EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage"; // Import for Firebase Storage
 
@@ -35,4 +35,5 @@ initializeAuth(app, {
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app); 
-export { app, auth, db,storage };
+
+export { app, auth, db,storage,onAuthStateChanged ,updatePassword, EmailAuthProvider, reauthenticateWithCredential};
