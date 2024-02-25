@@ -3,7 +3,7 @@ import { Text, StyleSheet, View, ScrollView, TouchableOpacity, ImageBackground, 
 import { AntDesign } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
 import { Platform } from 'react-native';
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../../../Firebase/Config"
 import { doc, setDoc } from "firebase/firestore";
 import GbStyle from "../../../Global/Styles"
@@ -56,7 +56,9 @@ const LoginScreen = ({ navigation }) => {
         // Signed in 
         console.log("login Success")
         const user = userCredential.user;
-        navigation.navigate("homeScreen")
+        navigation.navigate("profileScreen")
+        
+        
       })
       .catch((error) => {
 
@@ -130,7 +132,7 @@ const LoginScreen = ({ navigation }) => {
 
 
               <View style={styles.registerNavigation}>
-                <TouchableOpacity onPress={() => navigation.navigate("signUpScreen")}>
+                <TouchableOpacity onPress={() => navigation.navigate("profileScreen")}>
                   <Text style={GbStyle.NormalText}>Don't have an account?<Text style={{ color: "#FFB000", fontWeight: 700 }}> Register</Text></Text>
                 </TouchableOpacity>
               </View>

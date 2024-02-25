@@ -124,7 +124,13 @@ const Styles = {
     SignUpScreenBg: require("../assets/images/RegisterBg.jpg"),
     LogInScreenBg: require("../assets/images/LoginBg.jpg"),
     resetSuccessBg: require("../assets/images/resetSuccessBg.jpg"),
-    panFryImage: require("../assets/pngegg.png"),
+    dualCameraicon: require("../assets/images/dualCamera.png"),
+    UploadFileIcon: require("../assets/images/FileUploadIcon.png"),
+    UploadImageIcon: require("../assets/images/ImageUpload.png"),
+    DeleteBinIcon: require("../assets/images/delete.png"),
+    ProfileIcon: require("../assets/images/user.png"),
+
+    
 
     colors,
     mainTitle,

@@ -1,181 +1,206 @@
-import React, { useEffect, useState } from 'react'
-import { KeyboardAvoidingView, Dimensions, Text, StyleSheet, Image, View, TextInput, TouchableOpacity, ScrollView } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { AntDesign } from '@expo/vector-icons';
-import { Ionicons } from '@expo/vector-icons';
-import { Octicons } from '@expo/vector-icons';
-import { MaterialIcons } from '@expo/vector-icons';
+import React, { useEffect, useState } from 'react';
+import { KeyboardAvoidingView, Dimensions, Text, StyleSheet, Image, View, ActivityIndicator, TouchableOpacity, ScrollView, Alert,RefreshControl } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { AntDesign, Ionicons, Octicons } from '@expo/vector-icons';
 import { Platform } from 'react-native';
-import GbStyle from "../../../Global/Styles"
+import GbStyle from "../../../Global/Styles";
+import { useNavigation } from '@react-navigation/native';
+import { auth, db  } from "../../../Firebase/Config"
+import { doc, getDoc } from "firebase/firestore";
+import { useFocusEffect } from '@react-navigation/native';
 
 
-const ProfileScreen = ({ navigation }) => {
 
-  const [Email, SetEmail] = useState("abc@gamil.com");
-  const [password, SetPassword] = useState("Roshanmalla42@dd");
-  const [userName, SetUsername] = useState("Roshan Uchai");
-  const [secureText, SetSecureText] = useState(true);
-  const [contact, setContact] = useState("0412225425")
-  const [profile, setProfile] = useState("http://tinyurl.com/rj5jm9br")
-  const [PasswordVisbile, setPasswordVisible] = useState("eye-off-outline");
 
-  const passwordVisible = () => {
+const ProfileScreen = () => {
+  const userId = auth.currentUser ? auth.currentUser.uid : null;
+  const navigation = useNavigation();
 
-    if (PasswordVisbile == "eye-off-outline" && password.length == 0) {
-      Alert.alert("Warning!!", "Your password Field is empty");
-      setPasswordVisible("eye-off-outline")
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const [email, setEmail] = useState("");
+  const [firstName, SetFirstName] = useState("");
+  const [lastName, SetLastName] = useState("");
+  const [contact, setContact] = useState("");
+  const [profile, setProfile] = useState("");
+  const [subscription, SetSubscription] = useState("");
+  const [dailyLimit, SetDailyLimit] = useState("");
+  const [refreshing, setRefreshing] = React.useState(false);
+
+
+  const firestoreRetrive = async () => {
+    setLoading(true);
+    const docRef = doc(db, "Personal Details", userId);
+    try {
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        console.log(docSnap.exists()); // Check if the document exists
+        console.log(docSnap.data());
+       
+       await setEmail(docSnap.data().UserDetails.Email || "");
+       await  SetFirstName(docSnap.data().UserDetails.FirstName || "");
+       await SetLastName(docSnap.data().UserDetails.LastName || "");
+       await  setContact(docSnap.data().UserDetails.Phone || "");
+       await setProfile(docSnap.data().UserDetails.ProfileImage || "");
+       await SetSubscription(docSnap.data().Payment.SubscriptionStatus || "");
+       await SetDailyLimit(docSnap.data().Payment.DailyLimit || "");
+
+
+      } else {
+        console.log("No such document!");
+        setError('No such document!');
+      }
+    } catch (err) {
+      console.error("Error fetching document:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    else if (PasswordVisbile == "eye-off-outline") {
-      setPasswordVisible("eye-outline")
-      SetSecureText(false);
 
-    }
-    else {
-      SetSecureText(true);
-      setPasswordVisible("eye-off-outline")
-    }
+  useFocusEffect(
+    React.useCallback(() => {
+      firestoreRetrive();
+    }, [userId])
+  );
+
+
+// useEffect(()=>{
+//   firestoreRetrive();
+// },[]);
+
+
+
+  if (loading) {
+    return (
+    <View style={{flex:1, justifyContent:"center", alignItems:"center", flexDirection:"column",}}>
+  <ActivityIndicator size="small" color="#625D5D" style={{ transform: [{ scale: 3.5 }] }} />
+  <Text style={{color:"#000000", marginTop:35}}>Loading....</Text>
+    
+    </View>
+    
+    )
   }
 
+  if (error) {
+    return <View><Text>Error: {error}</Text></View>;
+  }
+
+  
+
   return (
+
     <SafeAreaView style={styles.container}>
       <ScrollView>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-
           <View style={styles.ProfileImage}>
-            <Image source={{ uri: profile }} style={styles.ProfileView} resizeMode={"cover"} />
+            <Image source={profile ? { uri: profile } : GbStyle.ProfileIcon} style={styles.ProfileView} resizeMode={"cover"} />
 
           </View>
+
+          <View style={[GbStyle.mainTitle, {}]}>
+            <Text style={[GbStyle.colors.buttonText.black, GbStyle.mainTitle, { fontSize: 30, color: "#000000" }]}>
+              {firstName + " " + lastName}
+            </Text>
+          </View>
+
+
 
 
           <View style={styles.PersonalInfoContainer}>
 
-            <View style={styles.DetailContainer}>
 
-              <View style={styles.iconContainer}>
-                <Octicons name="person" size={28} color="#625D5D" />
-              </View>
-              <View style={styles.PersonDetails}>
-
-                <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18, fontWeight: "bold" }]}>
-                  User Name
-                </Text>
-                <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18, marginVertical: 8 }]}>
-                  {userName}
-                </Text>
-
-              </View>
-            </View>
-
-
-            <View style={[styles.DetailContainer, { maringTop: 10 }]}>
-
+            <View style={[styles.DetailContainer, { marginTop: 20 }]}>
               <View style={styles.iconContainer}>
                 <AntDesign name="mail" size={28} color="#625D5D" />
-
               </View>
               <View style={styles.PersonDetails}>
-
                 <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18, fontWeight: "bold" }]}>
                   Email
                 </Text>
                 <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18, marginVertical: 8 }]}>
-                  {Email}
+                  {email}
                 </Text>
-
               </View>
             </View>
 
-
-
-            <View style={[styles.DetailContainer, { maringTop: 10 }]}>
-
+            <View style={[styles.DetailContainer, { marginTop: 20 }]}>
               <View style={styles.iconContainer}>
                 <AntDesign name="phone" size={28} color="#625D5D" />
               </View>
               <View style={styles.PersonDetails}>
-
                 <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18, fontWeight: "bold" }]}>
                   Contact
                 </Text>
                 <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18 }]}>
                   {contact}
                 </Text>
-
               </View>
             </View>
 
-
-
-            <View style={[styles.DetailContainer, { maringTop: 10 }]}>
-
+            <View style={[styles.DetailContainer, { marginTop: 20 }]}>
               <View style={styles.iconContainer}>
-              <AntDesign name="lock" size={28} color="#625D5D" />
+                <AntDesign name="phone" size={28} color="#625D5D" />
               </View>
               <View style={styles.PersonDetails}>
-
                 <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18, fontWeight: "bold" }]}>
-                  Password
+                  Subscripton Status
                 </Text>
-
-                <View style={{ flexDirection: "row" }}>
-                  <TextInput
-                    style={{ fontSize: 18, color: "#000000", marginVertical: 8 }}
-                    value={password}
-                    secureTextEntry={secureText}
-                    editable={false}
-                    autoComplete="off"
-                  />
-                  <TouchableOpacity onPress={passwordVisible} >
-                    <Ionicons name={PasswordVisbile} size={28} color="black" style={{ marginLeft: 40, alignContent: "center", textAlign: "center" }} />
-                  </TouchableOpacity>
-
-
-                </View>
+                <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18 }]}>
+                  {subscription}
+                </Text>
               </View>
-
-
-
             </View>
 
+            <View style={[styles.DetailContainer, { marginTop: 20 }]}>
+              <View style={styles.iconContainer}>
+                <AntDesign name="phone" size={28} color="#625D5D" />
+              </View>
+              <View style={styles.PersonDetails}>
+                <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18, fontWeight: "bold" }]}>
+                  Subscripton Status
+                </Text>
+                <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18 }]}>
+                  {dailyLimit}
+                </Text>
+              </View>
+            </View>
 
 
 
             <View style={styles.btnContainer}>
+              <TouchableOpacity
+                style={GbStyle.solidButton}
+                onPress={() => navigation.navigate("editProfile", {
+                  email: email,
+                  firstName: firstName,
+                  lastName: lastName,
 
-              <TouchableOpacity style={GbStyle.solidButton} onPress={() => navigation.navigate("loginScreen")}>
-                <Text style={[GbStyle.ButtonColorAndFontSize]} >Edit Profile</Text>
+                  contact: contact,
+                  profile: profile
+                })}>
+                <Text style={GbStyle.ButtonColorAndFontSize}>Edit Profile</Text>
               </TouchableOpacity>
             </View>
           </View>
-
-
-
-
-
         </KeyboardAvoidingView>
       </ScrollView>
     </SafeAreaView>
-
-
-
-
-
-  )
+  );
 };
 
-
 const styles = StyleSheet.create({
-
-
   container: {
     flex: 1,
     justifyContent: "center",
     alignContent: "center",
-    width: "99%",
-    backgroundColor: "#ffffff"
-
-
+    width: "100%",
+    backgroundColor: "#ffffff",
+    padding: 10,
+    borderWidth: 3
   },
 
   PersonalInfoContainer: {
@@ -186,7 +211,7 @@ const styles = StyleSheet.create({
   },
 
   ProfileImage: {
-    marginTop: 2,
+
     width: 200,
     alignSelf: "center",
     height: 200,
@@ -226,6 +251,7 @@ const styles = StyleSheet.create({
   PersonDetails: {
     width: "100%",
     flexDirection: "column",
+    marginHorizontal: 20
 
   },
 
