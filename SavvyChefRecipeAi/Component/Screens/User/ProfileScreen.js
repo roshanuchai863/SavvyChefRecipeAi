@@ -8,6 +8,9 @@ import { useNavigation } from '@react-navigation/native';
 import { auth, db  } from "../../../Firebase/Config"
 import { doc, getDoc } from "firebase/firestore";
 import { useFocusEffect } from '@react-navigation/native';
+import { MaterialIcons } from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons';
+import { Zocial } from '@expo/vector-icons';
 
 
 
@@ -115,7 +118,7 @@ const ProfileScreen = () => {
 
             <View style={[styles.DetailContainer, { marginTop: 20 }]}>
               <View style={styles.iconContainer}>
-                <AntDesign name="mail" size={28} color="#625D5D" />
+              <Zocial name="email" size={24} color="#625D5D" />
               </View>
               <View style={styles.PersonDetails}>
                 <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18, fontWeight: "bold" }]}>
@@ -129,13 +132,14 @@ const ProfileScreen = () => {
 
             <View style={[styles.DetailContainer, { marginTop: 20 }]}>
               <View style={styles.iconContainer}>
-                <AntDesign name="phone" size={28} color="#625D5D" />
+              <AntDesign name="mobile1" size={24} color="#625D5D" />          
+
               </View>
               <View style={styles.PersonDetails}>
                 <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18, fontWeight: "bold" }]}>
                   Contact
                 </Text>
-                <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18 }]}>
+                <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18, marginVertical: 8 }]}>
                   {contact}
                 </Text>
               </View>
@@ -143,13 +147,14 @@ const ProfileScreen = () => {
 
             <View style={[styles.DetailContainer, { marginTop: 20 }]}>
               <View style={styles.iconContainer}>
-                <AntDesign name="phone" size={28} color="#625D5D" />
+              <MaterialIcons name="subscriptions" size={24} color="#625D5D" />
+        
               </View>
               <View style={styles.PersonDetails}>
                 <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18, fontWeight: "bold" }]}>
                   Subscripton Status
                 </Text>
-                <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18 }]}>
+                <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18, marginVertical: 8 }]}>
                   {subscription}
                 </Text>
               </View>
@@ -157,13 +162,14 @@ const ProfileScreen = () => {
 
             <View style={[styles.DetailContainer, { marginTop: 20 }]}>
               <View style={styles.iconContainer}>
-                <AntDesign name="phone" size={28} color="#625D5D" />
+              <FontAwesome5 name="coins" size={24} color="#625D5D" />
+      
               </View>
               <View style={styles.PersonDetails}>
                 <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18, fontWeight: "bold" }]}>
-                  Subscripton Status
+                  Daily Coin
                 </Text>
-                <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18 }]}>
+                <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18, marginVertical: 8 }]}>
                   {dailyLimit}
                 </Text>
               </View>
