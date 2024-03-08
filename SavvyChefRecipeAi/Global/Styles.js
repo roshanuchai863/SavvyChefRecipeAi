@@ -129,6 +129,11 @@ const Styles = {
     UploadImageIcon: require("../assets/images/ImageUpload.png"),
     DeleteBinIcon: require("../assets/images/delete.png"),
     ProfileIcon: require("../assets/images/user.png"),
+    chatBotIcon: require("../assets/images/chatbot.png"),
+    GroceriesIcon: require("../assets/images/groceries.png"),
+    subscriptionIcon: require("../assets/images/credit-cards.png"),
+    SettingIcon: require("../assets/images/settings.png"),
+    HomeIcon: require("../assets/images/home.png"),
 
     
 

@@ -56,7 +56,7 @@ const LoginScreen = ({ navigation }) => {
         // Signed in 
         console.log("login Success")
         const user = userCredential.user;
-        navigation.navigate("profileScreen")
+        navigation.navigate("Profile")
         
         
       })

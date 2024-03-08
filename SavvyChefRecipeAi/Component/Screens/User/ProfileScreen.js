@@ -11,7 +11,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { Zocial } from '@expo/vector-icons';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 
@@ -33,60 +33,69 @@ const ProfileScreen = () => {
   const [refreshing, setRefreshing] = React.useState(false);
 
 
-  const firestoreRetrive = async () => {
-    setLoading(true);
-    const docRef = doc(db, "Personal Details", userId);
-    try {
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        console.log(docSnap.exists()); // Check if the document exists
-        console.log(docSnap.data());
+  // const firestoreRetrive = async () => {
+  //   setLoading(true);
+  //   const docRef = doc(db, "Personal Details", userId);
+  //   try {
+  //     const docSnap = await getDoc(docRef);
+  //     if (docSnap.exists()) {
+  //       console.log(docSnap.exists()); // Check if the document exists
+  //       console.log(docSnap.data());
        
-       await setEmail(docSnap.data().UserDetails.Email || "");
-       await  SetFirstName(docSnap.data().UserDetails.FirstName || "");
-       await SetLastName(docSnap.data().UserDetails.LastName || "");
-       await  setContact(docSnap.data().UserDetails.Phone || "");
-       await setProfile(docSnap.data().UserDetails.ProfileImage || "");
-       await SetSubscription(docSnap.data().Payment.SubscriptionStatus || "");
-       await SetDailyLimit(docSnap.data().Payment.DailyLimit || "");
+  //      await setEmail(docSnap.data().UserDetails.Email || "");
+  //      await  SetFirstName(docSnap.data().UserDetails.FirstName || "");
+  //      await SetLastName(docSnap.data().UserDetails.LastName || "");
+  //      await  setContact(docSnap.data().UserDetails.Phone || "");
+  //      await setProfile(docSnap.data().UserDetails.ProfileImage || "");
+  //      await SetSubscription(docSnap.data().Payment.SubscriptionStatus || "");
+  //      await SetDailyLimit(docSnap.data().Payment.DailyLimit || "");
 
 
-      } else {
-        console.log("No such document!");
-        setError('No such document!');
-      }
-    } catch (err) {
-      console.error("Error fetching document:", err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+  //     } else {
+  //       console.log("No such document!");
+  //       setError('No such document!');
+  //     }
+  //   } catch (err) {
+  //     console.error("Error fetching document:", err);
+  //     setError(err.message);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+  const getData = async () => {
+
+    try {
+      const email = await AsyncStorage.getItem('email');
+      const firstName = await AsyncStorage.getItem('firstName');
+      const lastName = await AsyncStorage.getItem('lastName');
+      const contact = await AsyncStorage.getItem('contact');
+      const profile = await AsyncStorage.getItem('profile'); 
+      const subscription = await AsyncStorage.getItem('subscription'); 
+      const dailyLimit = await AsyncStorage.getItem('dailyLimit');
+
+      setEmail(email || "");
+      SetFirstName(firstName || "");
+      SetLastName(lastName || "");
+      setContact(contact || "");
+      setProfile(profile || "");
+      SetSubscription(subscription || "");
+      SetDailyLimit(dailyLimit || "");
+
+
+    } catch (e) {
+      console.log("Error loading data", e);
+      alert("Could not load the data");
+    } 
   };
-
 
   useFocusEffect(
     React.useCallback(() => {
-      firestoreRetrive();
+      getData();
     }, [userId])
   );
 
 
-// useEffect(()=>{
-//   firestoreRetrive();
-// },[]);
 
-
-
-  if (loading) {
-    return (
-    <View style={{flex:1, justifyContent:"center", alignItems:"center", flexDirection:"column",}}>
-  <ActivityIndicator size="small" color="#625D5D" style={{ transform: [{ scale: 3.5 }] }} />
-  <Text style={{color:"#000000", marginTop:35}}>Loading....</Text>
-    
-    </View>
-    
-    )
-  }
 
   if (error) {
     return <View><Text>Error: {error}</Text></View>;
@@ -180,7 +189,7 @@ const ProfileScreen = () => {
             <View style={styles.btnContainer}>
               <TouchableOpacity
                 style={GbStyle.solidButton}
-                onPress={() => navigation.navigate("editProfile", {
+                onPress={() => navigation.navigate("Edit Profile", {
                   email: email,
                   firstName: firstName,
                   lastName: lastName,
