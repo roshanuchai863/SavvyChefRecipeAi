@@ -69,8 +69,8 @@ const EditProfile = ({ navigation, onUpload, route }) => {
     const { firstName, lastName, contact, profile, } = route.params;
 
     setContact(contact),
-      setProfile(profile),
-      SetFirstname(firstName)
+    setProfile(profile),
+    SetFirstname(firstName)
     SetLastname(lastName)
   }, [route.params])
 
@@ -122,7 +122,7 @@ const EditProfile = ({ navigation, onUpload, route }) => {
 
         <ScrollView>
           <View style={styles.container}>
-            <TouchableOpacity onPress={() => navigation.navigate("profileScreen")}>
+            <TouchableOpacity onPress={() => navigation.navigate("Profile")}>
               <AntDesign name="arrowleft" size={28} color="black" />
             </TouchableOpacity>
             <View style={styles.ProfileImage}>
