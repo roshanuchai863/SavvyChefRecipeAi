@@ -3,6 +3,8 @@ import { Text, StyleSheet, View, Image, TouchableOpacity, ImageBackground, Butto
 import { AntDesign } from '@expo/vector-icons';
 import GbStyle from "../../../Global/Styles"
 
+// This is the Welcome Screen for the SavvyChef Recipe App. It allows users to navigate to either the Sign Up or Login screens.
+
 const WelcomeScreen = ({ navigation }) => {
 
     return (
@@ -27,22 +29,22 @@ const WelcomeScreen = ({ navigation }) => {
 
                 <View style={styles.btnContainer}>
 
-                    <TouchableOpacity onPress={() => navigation.navigate("signUpScreen")} style={GbStyle.transparentButton}>
+                    <TouchableOpacity onPress={() => navigation.navigate("SignUp")} style={GbStyle.transparentButton}>
                         <Text style={GbStyle.ButtonColorAndFontSize} >Register</Text>
                     </TouchableOpacity>
 
 
 
-                    <TouchableOpacity onPress={() => navigation.navigate("loginScreen")} style={[GbStyle.solidButton, { marginVertical: 20 }]}>
+                    <TouchableOpacity onPress={() => navigation.navigate("Login")} style={[GbStyle.solidButton, { marginVertical: 20 }]}>
                         <Text style={GbStyle.ButtonColorAndFontSize} >Login</Text>
                     </TouchableOpacity>
 
 
-                    <View style={GbStyle.HorizentalLine}></View>
+                    {/* <View style={GbStyle.HorizentalLine}></View> */}
                 </View>
 
 
-                <View style={styles.SocialbtnContainer}>
+                {/* <View style={styles.SocialbtnContainer}>
 
                     <TouchableOpacity style={GbStyle.transparentButton} >
                         <Text style={[GbStyle.ButtonColorAndFontSize, { fontSize: 22 }]} >
@@ -56,7 +58,7 @@ const WelcomeScreen = ({ navigation }) => {
                             Register with Facebook</Text>
                     </TouchableOpacity>
 
-                </View>
+                </View> */}
 
 
             </SafeAreaView>

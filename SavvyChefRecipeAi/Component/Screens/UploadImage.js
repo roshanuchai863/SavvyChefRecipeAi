@@ -9,7 +9,7 @@ import GbStyle from "../../Global/Styles"
 
 
 
-function ImageUpload({ isVisible, onClose, onUpload }) {
+function ImageUpload({ isVisible, onClose, onUpload , onCameraCapture}) {
 
 
 
@@ -48,6 +48,7 @@ function ImageUpload({ isVisible, onClose, onUpload }) {
         console.log("Current isDefaultImage state: ", isDefaultImage);
     }, [isDefaultImage]);
 
+   
 
 
     return (
@@ -92,7 +93,7 @@ function ImageUpload({ isVisible, onClose, onUpload }) {
                                 </View>
                             </TouchableOpacity>
 
-                            <TouchableOpacity onPress={pickImage}>
+                            <TouchableOpacity onPress={onCameraCapture}>
                                 <View style={styles.UploadInerIcons}>
                                     <View style={{ borderWidth: 2, width: 90, height: 90, justifyContent: 'center', alignItems: "center", borderRadius: 50, borderColor: "#EE7214" }}>
                                         <Image source={GbStyle.dualCameraicon} resizeMode='contain' style={styles.ImageUploadIcon} />
@@ -112,15 +113,7 @@ function ImageUpload({ isVisible, onClose, onUpload }) {
                         </View>
                         <Button title="Close" onPress={onClose} />
 
-                        {/* 
 
-
-                    <Button title="Pick an image from camera roll" onPress={pickImage} />
-                    <Button title="Upload Image" onPress={firebasestora} />
-                    <View>
-                        <Progress.Circle size={150} showsText={true} progress={progress} />
-                    </View>
-                    <Button title="Close" onPress={onClose} /> */}
                     </View>
                 </Modal>
             </ScrollView>

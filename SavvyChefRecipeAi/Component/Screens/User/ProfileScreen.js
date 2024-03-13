@@ -1,107 +1,44 @@
-import React, { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Dimensions, Text, StyleSheet, Image, View, ActivityIndicator, TouchableOpacity, ScrollView, Alert,RefreshControl } from 'react-native';
+import React, { useEffect, useState, useContext } from 'react';
+import { KeyboardAvoidingView, Dimensions, Text, StyleSheet, Image, View, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AntDesign, Ionicons, Octicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { Platform } from 'react-native';
 import GbStyle from "../../../Global/Styles";
 import { useNavigation } from '@react-navigation/native';
-import { auth, db  } from "../../../Firebase/Config"
-import { doc, getDoc } from "firebase/firestore";
-import { useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { Zocial } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-
+import GlobalContext from '../Navigation/GlobalContext';
 
 const ProfileScreen = () => {
-  const userId = auth.currentUser ? auth.currentUser.uid : null;
-  const navigation = useNavigation();
 
-  const [userData, setUserData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const [email, setEmail] = useState("");
-  const [firstName, SetFirstName] = useState("");
-  const [lastName, SetLastName] = useState("");
-  const [contact, setContact] = useState("");
+  // Local state for handling potential errors and profile image URL
+  const [error, setError] = useState();
   const [profile, setProfile] = useState("");
-  const [subscription, SetSubscription] = useState("");
-  const [dailyLimit, SetDailyLimit] = useState("");
-  const [refreshing, setRefreshing] = React.useState(false);
 
-
-  // const firestoreRetrive = async () => {
-  //   setLoading(true);
-  //   const docRef = doc(db, "Personal Details", userId);
-  //   try {
-  //     const docSnap = await getDoc(docRef);
-  //     if (docSnap.exists()) {
-  //       console.log(docSnap.exists()); // Check if the document exists
-  //       console.log(docSnap.data());
-       
-  //      await setEmail(docSnap.data().UserDetails.Email || "");
-  //      await  SetFirstName(docSnap.data().UserDetails.FirstName || "");
-  //      await SetLastName(docSnap.data().UserDetails.LastName || "");
-  //      await  setContact(docSnap.data().UserDetails.Phone || "");
-  //      await setProfile(docSnap.data().UserDetails.ProfileImage || "");
-  //      await SetSubscription(docSnap.data().Payment.SubscriptionStatus || "");
-  //      await SetDailyLimit(docSnap.data().Payment.DailyLimit || "");
-
-
-  //     } else {
-  //       console.log("No such document!");
-  //       setError('No such document!');
-  //     }
-  //   } catch (err) {
-  //     console.error("Error fetching document:", err);
-  //     setError(err.message);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-  const getData = async () => {
-
-    try {
-      const email = await AsyncStorage.getItem('email');
-      const firstName = await AsyncStorage.getItem('firstName');
-      const lastName = await AsyncStorage.getItem('lastName');
-      const contact = await AsyncStorage.getItem('contact');
-      const profile = await AsyncStorage.getItem('profile'); 
-      const subscription = await AsyncStorage.getItem('subscription'); 
-      const dailyLimit = await AsyncStorage.getItem('dailyLimit');
-
-      setEmail(email || "");
-      SetFirstName(firstName || "");
-      SetLastName(lastName || "");
-      setContact(contact || "");
-      setProfile(profile || "");
-      SetSubscription(subscription || "");
-      SetDailyLimit(dailyLimit || "");
-
-
-    } catch (e) {
-      console.log("Error loading data", e);
-      alert("Could not load the data");
-    } 
-  };
-
-  useFocusEffect(
-    React.useCallback(() => {
-      getData();
-    }, [userId])
-  );
+  // Access the global user data from context
+  const navigation = useNavigation();
+  const { userData } = useContext(GlobalContext);
 
 
 
+  // useEffect hook updates the profile state based on userData changes
+  useEffect(() => {
+    if (!userData || Object.keys(userData).length === 0) {
+      setError("Couldn't load data");
+    } else {
+      setError(null);
+      setProfile(userData.profile)
+    }
+  }, [userData]);
 
+
+  // Render an error message if there is an error state
   if (error) {
     return <View><Text>Error: {error}</Text></View>;
   }
 
-  
+
 
   return (
 
@@ -115,7 +52,7 @@ const ProfileScreen = () => {
 
           <View style={[GbStyle.mainTitle, {}]}>
             <Text style={[GbStyle.colors.buttonText.black, GbStyle.mainTitle, { fontSize: 30, color: "#000000" }]}>
-              {firstName + " " + lastName}
+              {userData.firstName + " " + userData.lastName}
             </Text>
           </View>
 
@@ -127,21 +64,22 @@ const ProfileScreen = () => {
 
             <View style={[styles.DetailContainer, { marginTop: 20 }]}>
               <View style={styles.iconContainer}>
-              <Zocial name="email" size={24} color="#625D5D" />
+                <Zocial name="email" size={24} color="#625D5D" />
               </View>
               <View style={styles.PersonDetails}>
                 <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18, fontWeight: "bold" }]}>
                   Email
                 </Text>
                 <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18, marginVertical: 8 }]}>
-                  {email}
+                  {/* {email} */}
+                  {userData.email}
                 </Text>
               </View>
             </View>
 
             <View style={[styles.DetailContainer, { marginTop: 20 }]}>
               <View style={styles.iconContainer}>
-              <AntDesign name="mobile1" size={24} color="#625D5D" />          
+                <AntDesign name="mobile1" size={24} color="#625D5D" />
 
               </View>
               <View style={styles.PersonDetails}>
@@ -149,37 +87,39 @@ const ProfileScreen = () => {
                   Contact
                 </Text>
                 <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18, marginVertical: 8 }]}>
-                  {contact}
+                  {/* {contact} */}
+                  {userData.contact}
                 </Text>
               </View>
             </View>
 
             <View style={[styles.DetailContainer, { marginTop: 20 }]}>
               <View style={styles.iconContainer}>
-              <MaterialIcons name="subscriptions" size={24} color="#625D5D" />
-        
+                <MaterialIcons name="subscriptions" size={24} color="#625D5D" />
+
               </View>
               <View style={styles.PersonDetails}>
                 <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18, fontWeight: "bold" }]}>
                   Subscripton Status
                 </Text>
                 <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18, marginVertical: 8 }]}>
-                  {subscription}
+                  {userData.subscription}
+
                 </Text>
               </View>
             </View>
 
             <View style={[styles.DetailContainer, { marginTop: 20 }]}>
               <View style={styles.iconContainer}>
-              <FontAwesome5 name="coins" size={24} color="#625D5D" />
-      
+                <FontAwesome5 name="coins" size={24} color="#625D5D" />
+
               </View>
               <View style={styles.PersonDetails}>
                 <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18, fontWeight: "bold" }]}>
                   Daily Coin
                 </Text>
                 <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18, marginVertical: 8 }]}>
-                  {dailyLimit}
+                  {userData.dailyLimit}
                 </Text>
               </View>
             </View>
@@ -189,14 +129,7 @@ const ProfileScreen = () => {
             <View style={styles.btnContainer}>
               <TouchableOpacity
                 style={GbStyle.solidButton}
-                onPress={() => navigation.navigate("Edit Profile", {
-                  email: email,
-                  firstName: firstName,
-                  lastName: lastName,
-
-                  contact: contact,
-                  profile: profile
-                })}>
+                onPress={() => navigation.navigate("editProfile")}>
                 <Text style={GbStyle.ButtonColorAndFontSize}>Edit Profile</Text>
               </TouchableOpacity>
             </View>
@@ -215,7 +148,6 @@ const styles = StyleSheet.create({
     width: "100%",
     backgroundColor: "#ffffff",
     padding: 10,
-    borderWidth: 3
   },
 
   PersonalInfoContainer: {

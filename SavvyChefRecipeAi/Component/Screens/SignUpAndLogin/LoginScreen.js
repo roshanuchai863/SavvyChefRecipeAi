@@ -1,154 +1,151 @@
-import React, { useEffect, useState } from 'react'
-import { Text, StyleSheet, View, ScrollView, TouchableOpacity, ImageBackground, KeyboardAvoidingView, SafeAreaView, TextInput, Alert } from "react-native"
-import { AntDesign } from '@expo/vector-icons';
-import { Ionicons } from '@expo/vector-icons';
-import { Platform } from 'react-native';
-import { signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
-import { auth, db } from "../../../Firebase/Config"
-import { doc, setDoc } from "firebase/firestore";
-import GbStyle from "../../../Global/Styles"
-
+import React, { useState } from 'react';
+import {
+  Text,
+  StyleSheet,
+  View,
+  ScrollView,
+  TouchableOpacity,
+  ImageBackground,
+  KeyboardAvoidingView,
+  SafeAreaView,
+  TextInput,
+  Alert,
+  Platform,
+} from 'react-native';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../../../Firebase/Config';
+import GbStyle from '../../../Global/Styles';
 
 const LoginScreen = ({ navigation }) => {
-  const [Email, SetEmail] = useState("");
-  const [password, SetPassword] = useState("");
-  const [secureText, SetSecureText] = useState(true);
-  const [PasswordVisbile, setPasswordVisible] = useState("eye-off-outline");
+  const [email, setEmail] = useState('thakuriroshan863@gmail.com');
+  const [password, setPassword] = useState('Roshanmalla24@@');
+  const [secureText, setSecureText] = useState(true);
+  const [passwordVisible, setPasswordVisible] = useState('eye-off-outline');
 
-  const passwordVisible = () => {
+     // Function to toggle the visibility of the password input field
 
-    if (PasswordVisbile == "eye-off-outline" && password.length == 0) {
-      Alert.alert("Warning!!", "Your password Field is empty");
-      setPasswordVisible("eye-off-outline")
+  const togglePasswordVisibility = () => {
+    if (passwordVisible === 'eye-off-outline' && password.length === 0) {
+      Alert.alert('Warning!!', 'Your password field is empty');
+      setPasswordVisible('eye-off-outline');
+    } else if (passwordVisible === 'eye-off-outline') {
+      setPasswordVisible('eye-outline');
+      setSecureText(false);
+    } else {
+      setSecureText(true);
+      setPasswordVisible('eye-off-outline');
     }
+  };
 
-    else if (PasswordVisbile == "eye-off-outline") {
-      setPasswordVisible("eye-outline")
-      SetSecureText(false);
-
-    }
-    else {
-      SetSecureText(true);
-      setPasswordVisible("eye-off-outline")
-    }
-  }
-
+  // Validates input fields before attempting to log in
   const validation = () => {
-
-    if (Email.length == 0 && password.length == 0) {
-      Alert.alert("Warning!!", "Your Email and password Field are empty");
+    // Check for empty fields and alert the user accordingly
+    if (email.length === 0 && password.length === 0) {
+      Alert.alert('Warning!!', 'Your email and password fields are empty');
+      return false;
+    } else if (email.length === 0) {
+      Alert.alert('Warning!!', 'Your email field is empty');
+      return false;
+    } else if (password.length === 0) {
+      Alert.alert('Warning!!', 'Your password field is empty');
+      return false;
     }
-    else if (Email.length == 0) {
-      Alert.alert("Warning!!", "Your Email Field is empty");
-    }
-    else if (password.length == 0) {
-      Alert.alert("Warning!!", "Your  password Field is empty");
-    }
+    return true;
+  };
 
-
-  }
-
+  // Handles the login process
   const handleLogin = async () => {
-    validation();
+    // Stops the login process if validation fails
+    if (!validation()) return;
 
-    signInWithEmailAndPassword(auth, Email, password)
-      .then((userCredential) => {
-        // Signed in 
-        console.log("login Success")
-        const user = userCredential.user;
-        navigation.navigate("Profile")
-        
-        
-      })
-      .catch((error) => {
+    try {
+      // Attempts to sign in the user with Firebase authentication
+      await signInWithEmailAndPassword(auth, email, password);
+      console.log('Login success');
+      // Navigates to the main app screen upon successful login
 
-        console.log("login failed", error)
+      navigation.navigate('Tab Navigator');
+    } catch (error) {
+      // Logs and alerts the user of any login errors
 
-        const errorCode = error.code;
-        const errorMessage = error.message;
-      });
-  }
-
-
-
+      console.error('Login failed', error);
+      Alert.alert('Login Failed', error.message);
+    }
+  };
 
   return (
-
-
-
     <ImageBackground source={GbStyle.LogInScreenBg} resizeMode='cover' blurRadius={3} style={styles.backgroundImage}>
       <SafeAreaView>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <ScrollView>
-
             <View style={styles.MainContainer}>
               <View style={styles.headertextContainer}>
-
-                <TouchableOpacity onPress={() => navigation.navigate("welcomeScreen")}>
+                <TouchableOpacity onPress={() => navigation.goBack()}>
                   <AntDesign name="arrowleft" size={28} color="white" />
                 </TouchableOpacity>
-
                 <Text style={GbStyle.mainTitle}>Login</Text>
-                <Text style={[GbStyle.NormalText, { textAlign: "left", width: '100%' }]}>Login now to explore Food Recipe</Text>
+                <Text style={[GbStyle.NormalText, { textAlign: "left", width: '100%' }]}>
+                  Login now to explore Food Recipe
+                </Text>
               </View>
 
               <View style={styles.inputFieldContainer}>
-
                 <Text style={[GbStyle.NormalText, { textAlign: "left" }]}>Email</Text>
-
-                <View style={[styles.inputFieldcontainer]}>
+                <View style={styles.inputFieldcontainer}>
                   <AntDesign name="mail" size={28} color="white" />
-                  <TextInput value={Email} placeholder="Ex: abc@example.com" placeholderTextColor={"#ffffff"} onChangeText={SetEmail} style={[GbStyle.inputText, { width: "90%", marginLeft: 10 }]} />
-
+                  <TextInput
+                    value={email}
+                    placeholder="Ex: abc@example.com"
+                    placeholderTextColor="#ffffff"
+                    onChangeText={setEmail}
+                    style={[GbStyle.inputText, { width: "90%", marginLeft: 10 }]}
+                  />
                 </View>
-
 
                 <Text style={[GbStyle.NormalText, { textAlign: "left" }]}>Password</Text>
-
                 <View style={styles.inputFieldcontainer}>
                   <AntDesign name="lock" size={28} color="white" />
-                  <TextInput value={password} placeholder="........." placeholderTextColor={"#ffffff"} onChangeText={SetPassword} secureTextEntry={secureText} autoComplete='off' style={[GbStyle.inputText, { width: "90%", marginLeft: 10 }]} />
-
-                  <TouchableOpacity onPress={passwordVisible}>
-                    <Ionicons name={PasswordVisbile} size={28} color="white" style={{ marginLeft: -20 }} />
+                  <TextInput
+                    value={password}
+                    placeholder="........."
+                    placeholderTextColor="#ffffff"
+                    onChangeText={setPassword}
+                    secureTextEntry={secureText}
+                    style={[GbStyle.inputText, { width: "90%", marginLeft: 10 }]}
+                  />
+                  <TouchableOpacity onPress={togglePasswordVisibility}>
+                    <Ionicons name={passwordVisible} size={28} color="white" style={{ marginLeft: -20 }} />
                   </TouchableOpacity>
                 </View>
 
-
-
-                <View >
-                  <TouchableOpacity onPress={() => navigation.navigate("resetPassword")}>
-                    <Text style={[GbStyle.NormalText, { width: "100%", textAlign: "left" }]}> Forgot Password </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-              <View style={styles.btnContainer}>
-
-                <TouchableOpacity onPress={handleLogin} style={GbStyle.solidButton}>
-                  <Text style={GbStyle.ButtonColorAndFontSize} >Login</Text>
+                <TouchableOpacity onPress={() => navigation.navigate("ResetPassword")}>
+                  <Text style={[GbStyle.NormalText, { width: "100%", textAlign: "left" }]}>
+                    Forgot Password
+                  </Text>
                 </TouchableOpacity>
               </View>
 
+              <View style={styles.btnContainer}>
+                <TouchableOpacity onPress={handleLogin} style={GbStyle.solidButton}>
+                  <Text style={GbStyle.ButtonColorAndFontSize}>Login</Text>
+                </TouchableOpacity>
+              </View>
 
               <View style={styles.registerNavigation}>
-                <TouchableOpacity onPress={() => navigation.navigate("profileScreen")}>
-                  <Text style={GbStyle.NormalText}>Don't have an account?<Text style={{ color: "#FFB000", fontWeight: 700 }}> Register</Text></Text>
+                <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
+                  <Text style={GbStyle.NormalText}>
+                    Don't have an account?<Text style={{ color: "#FFB000", fontWeight: "bold" }}> Register</Text>
+                  </Text>
                 </TouchableOpacity>
               </View>
-
             </View>
-
           </ScrollView>
         </KeyboardAvoidingView>
-
-      </SafeAreaView></ImageBackground>
-
-
-  )
-
-}
-
+      </SafeAreaView>
+    </ImageBackground>
+  );
+};
 
 const styles = StyleSheet.create({
   backgroundImage: {
@@ -156,19 +153,15 @@ const styles = StyleSheet.create({
     width: "100%",
     justifyContent: 'flex-start',
   },
-
   MainContainer: {
     width: "100%",
     padding: 30,
-    margin: 3
+    margin: 3,
   },
-
   headertextContainer: {
     width: "100%",
     alignItems: "flex-start",
-
   },
-
   inputFieldcontainer: {
     flexDirection: "row",
     justifyContent: "center",
@@ -177,37 +170,23 @@ const styles = StyleSheet.create({
     borderColor: GbStyle.colors.buttonColors.borderColor,
     borderWidth: 1,
     padding: 15,
-    borderRadius: 15
-  },
-
-  inputFieldContainer: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
+    borderRadius: 15,
     marginTop: 10,
-    flexWrap: "wrap",
-
-
   },
-
+  inputFieldContainer: {
+    marginTop: 10,
+  },
   btnContainer: {
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 20
-
-
+    marginTop: 20,
   },
-
   registerNavigation: {
     justifyContent: "center",
     alignItems: 'center',
-    marginTop: 0,
-    paddingBottom: 50
-
+    marginTop: 20,
+    paddingBottom: 50,
   },
+});
 
-
-
-})
-
-export default LoginScreen
+export default LoginScreen;

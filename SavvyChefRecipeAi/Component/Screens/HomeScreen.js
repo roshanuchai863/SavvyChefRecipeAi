@@ -15,7 +15,7 @@ const HomeScreen = ({ navigation }) => {
           setName(value);
           console.log(name)
           // Only navigate after setting the name
-          navigation.navigate("Profile");
+          // navigation.navigate("home");
         }
       } catch (e) {
         console.error("Error reading value from AsyncStorage", e);

@@ -1,266 +1,135 @@
-import React, { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Dimensions, Text, StyleSheet, Image, View, ActivityIndicator, TouchableOpacity, ScrollView, Alert, RefreshControl } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { AntDesign, Ionicons, Octicons } from '@expo/vector-icons';
-import { Platform } from 'react-native';
+import React, { useContext, useEffect, useState } from 'react';
+import {
+  View,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  Text,
+  ScrollView,
+} from 'react-native';
+import { DrawerContentScrollView, DrawerItem, DrawerItemList } from '@react-navigation/drawer';
+import { AntDesign, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import GbStyle from "../../../Global/Styles";
-import { useNavigation } from '@react-navigation/native';
-import { auth, db } from "../../../Firebase/Config"
-import { doc, getDoc } from "firebase/firestore";
-import { useFocusEffect } from '@react-navigation/native';
-import { MaterialIcons } from '@expo/vector-icons';
-import { FontAwesome5 } from '@expo/vector-icons';
-import { Zocial } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { auth } from "../../../Firebase/Config";
+import GlobalContext from './../Navigation/GlobalContext';
 
-import { EvilIcons } from '@expo/vector-icons';
 
-const SettingScreen = () => {
-  const userId = auth.currentUser ? auth.currentUser.uid : null;
-  const navigation = useNavigation();
-
-  const [error, setError] = useState(null);
-
-  const [email, setEmail] = useState("");
-  const [firstName, SetFirstName] = useState("");
-  const [lastName, SetLastName] = useState("");
+// Custom Drawer Content component
+const SettingScreen = (props) => {
+  const { userData, setCameraPictureCapture, cameraPictureCapture, resetGlobalContext } = useContext(GlobalContext);
   const [profile, setProfile] = useState("");
 
-
-  const getData = async () => {
-
+  const Logout = async () => {
     try {
-      const email = await AsyncStorage.getItem('email');
-      const firstName = await AsyncStorage.getItem('firstName');
-      const lastName = await AsyncStorage.getItem('lastName');
-      const profile = await AsyncStorage.getItem('profile'); // Fixed to correctly retrieve 'profile'
-
-
-      setEmail(email || "");
-      SetFirstName(firstName || "");
-      SetLastName(lastName || "");
-      setProfile(profile || "");
-
-
-    } catch (e) {
-      console.log("Error loading data in setting screen", e);
-      alert("Could not load the data");
+      await auth.signOut();
+      resetGlobalContext();
+      // Navigate to the welcome or login screen after logout
+      props.navigation.replace('Welcome');
+    } catch (error) {
+      console.log("Logout Error: ", error);
     }
   };
 
-  const Logout = async () => {
-
-    try {
-      await auth.signOut();
-      navigation.navigate("welcomeScreen")
-    } catch (error) {
-      console.log("Logout Error: ", error)
+  // Set profile picture from camera capture or use default
+  useEffect(() => {
+    if (cameraPictureCapture) {
+      setProfile(cameraPictureCapture);
+      setCameraPictureCapture(null);
     }
+  }, [cameraPictureCapture]);
 
-
-
-  }
-
-
-  useFocusEffect(
-    React.useCallback(() => {
-      getData();
-    }, [userId])
-  );
-
-
-
-  if (error) {
-    return <View><Text>Error: {error}</Text></View>;
-  }
-
-
+  // Set profile picture from user data
+  useEffect(() => {
+    setProfile(userData.profile);
+  }, [userData]);
 
   return (
+    <DrawerContentScrollView {...props}>
+      <View style={styles.profileContainer}>
+        <Image source={profile ? { uri: profile } : GbStyle.ProfileIcon} style={styles.profileImage} resizeMode={"cover"} />
+        <Text style={styles.userName}>{userData.firstName + " " + userData.lastName}</Text>
+        <Text style={styles.userEmail}>{userData.email}</Text>
+      </View>
 
-    <SafeAreaView style={styles.container}>
-      <ScrollView>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <View style={styles.divider} />
 
+      <DrawerItem
+        icon={() => (
+          <AntDesign name="home" size={30} color="#EE7214" style={{ marginRight: -15 }} />
+        )}
+        label="Home"
+        labelStyle={{ color: '#000', fontSize: 16, fontWeight: '400' }}
+        onPress={() => props.navigation.navigate("Home")}
+      />
 
-          <View style={styles.Headercontainer}>
+      <DrawerItem
+        icon={() => (
+          <FontAwesome5 name="user" size={30} color="#EE7214" style={{ marginRight: -15 }} />
+        )}
+        label="Profile"
+        labelStyle={{ color: '#000', fontSize: 16, fontWeight: '400' }}
+        onPress={() => props.navigation.navigate("Profile")}
+      />
 
-            <View style={styles.ProfileImage}>
-              <Image source={profile ? { uri: profile } : GbStyle.ProfileIcon} style={styles.ProfileView} resizeMode={"cover"} />
+      <DrawerItem
+        icon={() => (
+          <AntDesign name="creditcard" size={30} color="#EE7214" style={{ marginRight: -15 }} />
+        )}
+        label="Subscription"
+        labelStyle={{ color: '#000', fontSize: 16, fontWeight: '400' }}
+        onPress={() => props.navigation.navigate("Subscription")}
+      />
 
-            </View>
-
-
-            <View style={styles.headerDetails}>
-
-              <Text style={[GbStyle.colors.buttonText.black, GbStyle.mainTitle, { fontSize: 26, color: "#000000", textAlign: 'left' }]}>
-                {firstName + " " + lastName}
-              </Text>
-
-              <Text style={[GbStyle.colors.buttonText.black, { fontSize: 16, textAlign: 'left' }]}>
-                {email}
-              </Text>
-            </View>
-          </View>
-
-          <View style={{ width: "98%", borderColor: "#C8C8C8", borderWidth: 1, justifyContent: "center", alignItems: 'center', alignSelf: "center", margin: 20 }}></View>
-
-
-          <View style={styles.PersonalInfoContainer}>
-
-            <TouchableOpacity onPress={() => navigation.navigate("Home")}>
-              <View style={styles.DetailContainer}>
-
-                <AntDesign name="home" size={30} color="#625D5D" />
-
-                <View style={styles.PersonDetails}>
-                  <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18, fontWeight: "bold" }]}>
-                    Home
-                  </Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate("Profile")} style={{ marginTop: 25 }}>
-
-              <View style={styles.DetailContainer}>
-
-                <FontAwesome5 name="user" size={30} color="#625D5D" />
-
-                <View style={styles.PersonDetails}>
-                  <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18, fontWeight: "bold" }]}>
-                    Profile
-                  </Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={() => navigation.navigate("Home")} style={{ marginTop: 25 }}>
-
-              <View style={styles.DetailContainer}>
-
-                <AntDesign name="creditcard" size={30} color="black" />
-
-                <View style={styles.PersonDetails}>
-                  <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18, fontWeight: "bold" }]}>
-                    Subscription
-                  </Text>
-                </View>
-
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={Logout} style={{ marginTop: 25 }}>
-
-              <View style={styles.DetailContainer}>
-
-                <MaterialIcons name="logout" size={30} color="black" />
-
-                <View style={styles.PersonDetails}>
-                  <Text style={[GbStyle.colors.buttonText.black, { fontSize: 18, fontWeight: "bold" }]}>
-                    Logout
-                  </Text>
-                </View>
-
-              </View>
-            </TouchableOpacity>
-          </View>
+      <DrawerItem
+        icon={() => (
+          <MaterialIcons name="logout" size={30} color="#EE7214" style={{ marginRight: -15 }} />
+        )}
+        label="Logout"
+        labelStyle={{ color: '#000', fontSize: 16, fontWeight: '400' }}
+        onPress={Logout}
+      />
 
 
 
-        </KeyboardAvoidingView>
-      </ScrollView>
-    </SafeAreaView>
+    </DrawerContentScrollView>
   );
 };
 
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignContent: "center",
-    width: "100%",
-    backgroundColor: "#ffffff",
-    padding: 10,
-    borderWidth: 3
-  },
-
-
-
-  Headercontainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    alignSelf: "flex-start",
-    marginTop: 40
-  },
-
-
-  ProfileImage: {
-    width: 100,
-
-    height: 100,
-
-
-  },
-  ProfileView: {
-    width: "100%",
-    height: "100%",
-    borderWidth: 2,
-    borderRadius: 50,
-    borderColor: '#EE7214',
-    borderWidth: 2,
-    marginLeft: 7,
-  },
-
-  PersonalInfoContainer: {
-
-    padding: 10,
-    paddingTop: 5,
-
-  },
-  iconContainer: {
-    borderWidth: 2,
-    borderColor: "#EE7214",
+  profileContainer: {
     alignItems: 'center',
-
-    alignContent: "center",
-    justifyContent: "center",
-    padding: 13,
-    borderRadius: Math.round(Dimensions.get('window').width + Dimensions.get('window').height) / 2,
-    width: Dimensions.get('window').width * 0.14,
-    height: Dimensions.get('window').width * 0.14,
+    padding: 20,
   },
-
-
-  PersonDetails: {
-    width: "100%",
-    flexDirection: "column",
-    marginHorizontal: 20
-
+  profileImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
   },
-
-
-  DetailContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+  userName: {
+    marginTop: 10,
+    fontWeight: 'bold',
+    fontSize: 24,
   },
-
-  headerDetails: {
-    width: "100%",
-    flexDirection: "column",
-    marginHorizontal: 25,
-    alignItems: "flex-start",
-    justifyContent: "center",
-    marginBottom: 20
-
+  userEmail: {
+    fontSize: 15,
+    color: 'gray',
   },
-
-
-  btnContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 40
+  divider: {
+    borderBottomColor: 'gray',
+    borderBottomWidth: 1,
+    marginVertical: 10,
   },
-
+  drawerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingLeft: 20,
+  },
+  drawerButtonText: {
+    marginLeft: 10,
+    fontSize: 16,
+  },
 });
 
-export default SettingScreen
+export default SettingScreen;

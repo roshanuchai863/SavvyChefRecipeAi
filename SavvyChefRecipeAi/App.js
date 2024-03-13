@@ -1,14 +1,14 @@
 import 'react-native-gesture-handler';
 import React, { useState, useEffect } from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Image } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import GbStyle from "./Global/Styles";
-import { doc, getDoc } from "firebase/firestore";
-import AsyncStorage from '@react-native-async-storage/async-storage';
-// Import screens
+import { doc, onSnapshot } from "firebase/firestore";
+import { auth, onAuthStateChanged, db } from "./Firebase/Config";
+import GlobalContext from './Component/Screens/Navigation/GlobalContext';
+import  GbStyle from "./Global/Styles";
+import {Image} from "react-native"
+
+// Importing screens for navigation
 import WelcomeScreen from "./Component/Screens/SignUpAndLogin/WelcomeScreen";
 import LoginScreen from "./Component/Screens/SignUpAndLogin/LoginScreen";
 import SignUpScreen from "./Component/Screens/SignUpAndLogin/SignUpScreen";
@@ -19,52 +19,74 @@ import ProfileScreen from './Component/Screens/User/ProfileScreen';
 import EditProfile from './Component/Screens/User/EditProfile';
 import ImageUpload from './Component/Screens/UploadImage';
 import SettingScreen from './Component/Screens/User/SettingScreen';
-// Import Firebase auth
-import { auth, onAuthStateChanged, db } from "./Firebase/Config";
+import CameraCapture from './Component/Screens/Camera/CameraCapture';
+import TabNavigator from './Component/Screens/Navigation/TabNavigator';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import SettingStackScreen from './Component/Screens/Navigation/SettingStackScreen';
+import DrawerNavigation from './Component/Screens/Navigation/DrawerNavigation';
 
+
+
+
+// Creating navigation stack and tab instances
 const Stack = createNativeStackNavigator();
-const Tab = createBottomTabNavigator();
+const Tab = createBottomTabNavigator()
+
 
 export default function App() {
-  const [currentUser, setCurrentUser] = useState(null);
+
+  // State hooks for managing global user data and authentication state
   const [error, setError] = useState(null);
-
-  const [email, setEmail] = useState("");
-  const [firstName, SetFirstName] = useState("");
-  const [lastName, SetLastName] = useState("");
-  const [contact, setContact] = useState("");
-  const [profile, setProfile] = useState("");
-  const [subscription, SetSubscription] = useState("");
-  const [dailyLimit, SetDailyLimit] = useState("");
+  const [userData, setUserData] = useState({});
+  const [user, setUser] = useState(null);
+  const [userId, setUserID] = useState(null);
+  const [CameraPictureCapture, setCameraPictureCapture] = useState(null)
 
 
+  // Authentication state listener to manage user sign-in state
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
-      if (user) {
-        firestoreRetrieve();
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+
+        // User is signed in, fetch user details from Firestore
+        console.log("User is signed in:", currentUser);
+        firestoreRetrieve(currentUser.uid)
+        setUser(currentUser);
+        setUserID(currentUser.uid)
+
+        console.log("User id is :", userId);
+
+      }
+      else {
+
+        // User is signed out, reset state
+        setUser(null);
+        setUserID(null);
       }
     });
-    return () => unsubscribe(); // Cleanup subscription
+    console.log("userData profile is ", userData.profile)
+
+    return () => unsubscribe();
   }, []);
 
-  const firestoreRetrieve = async () => {
-  
-    const userId = auth.currentUser ? auth.currentUser.uid : null;
-    if (!userId) {
+
+  // Function to fetch user details from Firestore and update local state
+  const firestoreRetrieve = (uid) => {
+    if (!uid) {
       console.log("User not logged in");
       return;
     }
 
-    const docRef = doc(db, "Personal Details", userId);
-    try {
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const userDetails = docSnap.data().UserDetails || {};
-        const paymentDetails = docSnap.data().Payment || {};
+    const docRef = doc(db, "Personal Details", uid);
 
-        // Consolidate user data for easier management
-        const userData = {
+    // Set up a real-time listener using onSnapshot
+    const unsubscribe = onSnapshot(docRef, (doc) => {
+      if (doc.exists()) {
+        const userDetails = doc.data().UserDetails || {};
+        const paymentDetails = doc.data().Payment || {};
+
+        // Update userData state with the new data
+        setUserData({
           email: userDetails.Email || "",
           firstName: userDetails.FirstName || "",
           lastName: userDetails.LastName || "",
@@ -72,82 +94,54 @@ export default function App() {
           profile: userDetails.ProfileImage || "",
           subscription: paymentDetails.SubscriptionStatus || "",
           dailyLimit: paymentDetails.DailyLimit || "",
-        };
-
-        // Update AsyncStorage with user data
-        await Promise.all(Object.keys(userData).map(key =>
-          AsyncStorage.setItem(key, userData[key])
-        ));
-
+        });
       } else {
         console.log("No such document!");
         setError('No such document!');
       }
-    } catch (err) {
+    }, (err) => {
       console.error("Error fetching document:", err);
       setError(err.message);
-    }
+    });
+
+    // Return the unsubscribe function to clean up the listener when the component unmounts or the user ID changes
+    return unsubscribe;
+  };
+
+
+  // This example resets all state
+  const resetGlobalContext = () => {
+    setUserData({});
+    setUser(null);
+    setUserID(null);
+    setCameraPictureCapture(null);
   };
 
 
   return (
+
     <NavigationContainer>
 
-      {currentUser ? (
+      {/* If user is signed in, provide user data through global context and render the main app stack */}
+      {auth.currentUser ? (
+        <GlobalContext.Provider value={{ userData, user, userId, CameraPictureCapture, setCameraPictureCapture, resetGlobalContext }}>
+         <DrawerNavigation />
+        </GlobalContext.Provider >
 
-        <Tab.Navigator
-          screenOptions={({ route }) => ({
-            tabBarIcon: ({ focused, color, size }) => {
-              let iconSource;
-
-              if (route.name === 'Home') {
-
-                iconSource = GbStyle.HomeIcon;
-
-              } else if (route.name === 'Profile') {
-                iconSource = GbStyle.chatBotIcon;
-              } else if (route.name === 'Edit Profile') {
-                iconSource = GbStyle.GroceriesIcon;
-              }
-              else if (route.name === 'Setting') {
-
-                iconSource = GbStyle.SettingIcon;
-              }
-
-              // You can return any component that you like here!
-              return <Image source={iconSource} style={{ width: size, height: size }} resizeMode="contain" />;
-            },
-            tabBarActiveTintColor: 'tomato',
-            tabBarInactiveTintColor: 'gray',
-          })}
-        >
-          <Tab.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
-          <Tab.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
-          <Tab.Screen name="Edit Profile" component={EditProfile} options={{ headerShown: false }} />
-          <Tab.Screen name="Setting" component={SettingScreen} options={{ headerShown: false }} />
-
-        </Tab.Navigator>
       ) : (
-        // Screens accessible when no user is logged in
-        <Stack.Navigator>
-          <Stack.Screen name="welcomeScreen" component={WelcomeScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="loginScreen" component={LoginScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="signUpScreen" component={SignUpScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="resetPassword" component={ResetPassword} options={{ headerShown: false }} />
-          <Stack.Screen name="resetSuccess" component={ResetSuccess} options={{ headerShown: false }} />
 
+        <Stack.Navigator>
+          <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="SignUp" component={SignUpScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="ResetPassword" component={ResetPassword} options={{ headerShown: false }} />
+          <Stack.Screen name="ResetSuccess" component={ResetSuccess} options={{ headerShown: false }} />
         </Stack.Navigator>
       )}
 
     </NavigationContainer>
+
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+
