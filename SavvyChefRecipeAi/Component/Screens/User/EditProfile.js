@@ -1,120 +1,179 @@
-import React, { useEffect, useState } from 'react'
-import { KeyboardAvoidingView, Text, StyleSheet, Image, View, TextInput, TouchableOpacity, Platform, ScrollView } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { AntDesign } from '@expo/vector-icons';
-import { Ionicons } from '@expo/vector-icons';
-import { Octicons } from '@expo/vector-icons';
-import GbStyle from "../../../Global/Styles"
+import React, { useEffect, useState, useContext } from 'react';
+import { KeyboardAvoidingView, Text, StyleSheet, Image, View, TextInput, ActivityIndicator, TouchableOpacity, Platform, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { AntDesign, Ionicons, Octicons } from '@expo/vector-icons';
+import GbStyle from "../../../Global/Styles";
 import ImageUpload from '../UploadImage';
-import { auth, db, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "../../../Firebase/Config"
-import { doc, setDoc, updateDoc } from "firebase/firestore";
+import { auth, db, updatePassword, reauthenticateWithCredential, EmailAuthProvider, storage } from "../../../Firebase/Config";
+import { doc, updateDoc } from "firebase/firestore";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import GlobalContext from '../Navigation/GlobalContext';
+import * as Progress from 'react-native-progress';
 
 
-const EditProfile = ({ navigation, onUpload, route }) => {
 
-  const [currentPasswordVisible, SetcurrentPasswordVisible] = useState("eye-off-outline");
-  const [newPasswordVisible, SetNewPasswordVisible] = useState("eye-off-outline");
-  const [currentPassword, SetCurrentPassword] = useState("abcd");
-  const [newPassword, SetNewPassword] = useState("abcd");
-  const [firstName, SetFirstname] = useState("");
-  const [lastName, SetLastname] = useState("");
-  const [contact, setContact] = useState("")
-  const [profile, setProfile] = useState("");
-  const [secureText, SetSecureText] = useState(true);
-  const [newSecureText, SetNewSecureText] = useState(true);
+const EditProfile = ({ navigation }) => {
+  const { userData, setCameraPictureCapture, CameraPictureCapture } = useContext(GlobalContext);
+  const user = auth.currentUser;
 
-  const [modalVisible, setModalVisible] = useState(false);  // upload image  modal
-  const [profileImageUrl, setProfileImageUrl] = useState('');
 
-  const currentPasswordVisibleIcon = () => {
-    SetSecureText(!secureText);
-    SetcurrentPasswordVisible(secureText ? "eye-outline" : "eye-off-outline");
+
+  // State variables for form fields and UI state management
+  const [newPasswordVisible, setNewPasswordVisible] = useState(false); 
+  const [newPassword, setNewPassword] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [firstName, setFirstname] = useState(userData?.firstName || "");
+  const [lastName, setLastname] = useState(userData?.lastName || "");
+  const [contact, setContact] = useState(userData?.contact || "");
+  const [profile, setProfile] = useState(GbStyle.ProfileIcon);
+  const [error, setError] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+
+  // Effect hook to initialize form with user data
+  useEffect(() => {
+    if (userData) {
+      setProfile(userData.profile || "");
+      setFirstname(userData.firstName || "");
+      setLastname(userData.lastName || "");
+      setContact(userData.contact || "");
+    } else {
+      setError("Couldn't load user data.");
+    }
+  }, [userData]);
+
+
+  // Effect hook for handling camera picture capture updates
+  useEffect(() => {
+    if (CameraPictureCapture) {
+      setProfile(CameraPictureCapture);
+      setModalVisible(false);
+      setCameraPictureCapture(null)
+    }
+  }, [CameraPictureCapture]);
+
+  // Validation for input fields
+  const inputFieldValidation = () => {
+
+    if (firstName.length <= 2) {
+      alert("First Name is empty & must be at least 3 letters long.")
+      return false
+    }
+    if (lastName.length <= 2) {
+      alert("Last Name is empty & must be at least 3 letters long.")
+      return false
+    }
+    if (contact.length != 10 && contact.length >= 1) {
+      alert("Contact Number Must be 10 digit")
+      return false;
+    }
+
+
+
+    return true;
+  }
+
+  // Toggle visibility of new password
+  const toggleNewPasswordVisibility = () => {
+    setNewPasswordVisible(!newPasswordVisible);
   };
-
-  const newPasswordVisibleIcon = () => {
-    SetNewSecureText(!newSecureText);
-    SetNewPasswordVisible(newSecureText ? "eye-outline" : "eye-off-outline");
-  };
-
 
   const handleImageUpload = (url) => {
     setProfile(url);
     setModalVisible(false);
   };
 
-  const updateData = async () => {
+  // Upload profile image to Firebase Storage
+  const uploadProfileImage = async () => {
+    if (!profile) {
+      console.error("No profile image selected");
+      return null; // Return null if no profile image to upload
+    }
+
     try {
-      console.warn("update userid", auth.currentUser.uid)
-      const userDocRef = doc(db, "Personal Details", auth.currentUser.uid);
-      await updateDoc(userDocRef, {
+      const response = await fetch(profile);
+      const blob = await response.blob();
+      const storageRef = ref(storage, `images/${user.uid}/${Date.now()}`);
+      const uploadTask = uploadBytesResumable(storageRef, blob);
+
+      return new Promise((resolve, reject) => {
+        uploadTask.on('state_changed',
+          (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            setUploadProgress(progress);
+          },
+          (error) => {
+            console.error("Error during image upload:", error);
+            reject(error);
+          },
+          () => {
+            getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+              setUploadProgress(0);
+              resolve(downloadURL);
+            });
+          }
+        );
+      });
+    } catch (error) {
+      console.error("Failed to upload profile image:", error);
+      setError("Failed to upload profile image.");
+      return null; // Return null if upload fails
+    }
+  };
+
+  // Update user profile data
+  const updateData = async () => {
+    if (!inputFieldValidation()) {
+      return; // Stop the function if validation fails
+    }
+    setIsLoading(true); // Start loading
+
+    try {
+      const profileImageUrl = await uploadProfileImage(); // Upload and get the URL only if changed
+
+      // Prepare update payload
+      const updatePayload = {
         "UserDetails.FirstName": firstName,
         "UserDetails.LastName": lastName,
-        "UserDetails.Phone": contact
-        // Add other fields as necessary
+        "UserDetails.Phone": contact,
+      };
 
+      if (profileImageUrl) {
+        updatePayload["UserDetails.ProfileImage"] = profileImageUrl;
+      }
 
+      // Update Firestore document
+      const userDocRef = doc(db, "Personal Details", user.uid);
+      await updateDoc(userDocRef, updatePayload);
 
-      });
-      handlePasswordChange()
-      alert('updating profile');
+      // Update password if necessary
+      if (currentPassword && newPassword) {
+        const credential = EmailAuthProvider.credential(user.email, currentPassword);
+        await reauthenticateWithCredential(user, credential);
+        await updatePassword(user, newPassword);
+        alert('Password updated successfully.');
+      }
+
+      alert('Profile updated successfully.');
     } catch (error) {
       console.error("Error updating profile:", error);
-      alert('Error updating profile');
+      setError(`Error updating profile: ${error.message}`);
+      alert('Error updating. Try Again');
     }
+    setIsLoading(false);
+  };
+
+  // Navigate to camera for picture capture
+  function CameraCaptionNavigation() {
+    setModalVisible(false)
+    navigation.navigate('Camera');
   }
 
 
-  useEffect(() => {
-
-    const { firstName, lastName, contact, profile, } = route.params;
-
-    setContact(contact),
-    setProfile(profile),
-    SetFirstname(firstName)
-    SetLastname(lastName)
-  }, [route.params])
 
 
-  const reauthenticateUser = async (currentPassword) => {
-
-    const user = auth.currentUser;
-    const credential = EmailAuthProvider.credential(user.email, currentPassword);
-
-    try {
-      await reauthenticateWithCredential(user, credential);
-      return true; // Re-authentication successful
-    } catch (error) {
-      console.error("Re-authentication failed:", error);
-      return false; // Re-authentication failed
-    }
-  };
-
-  const updateUserPassword = async (newPassword) => {
-    const auth = getAuth();
-    const user = auth.currentUser;
-
-    try {
-      await updatePassword(user, newPassword);
-      console.log("Password updated successfully.");
-      // Handle post-update logic here, such as displaying a success message
-    } catch (error) {
-      console.error("Password update failed:", error);
-      // Handle errors, such as password not meeting the security requirements
-    }
-  };
-
-  const handlePasswordChange = async (currentPassword, newPassword) => {
-    const isReauthenticated = await reauthenticateUser(currentPassword);
-
-    if (isReauthenticated) {
-      await updateUserPassword(newPassword);
-      alert("Password has been updated.");
-      // Additional actions upon successful update
-    } else {
-      alert("Current password is incorrect.", currentPassword);
-      // Handle incorrect current password case
-    }
-  };
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
@@ -122,105 +181,149 @@ const EditProfile = ({ navigation, onUpload, route }) => {
 
         <ScrollView>
           <View style={styles.container}>
-            <TouchableOpacity onPress={() => navigation.navigate("Profile")}>
-              <AntDesign name="arrowleft" size={28} color="black" />
-            </TouchableOpacity>
-            <View style={styles.ProfileImage}>
-              <Image source={profile ? { uri: profile } : GbStyle.ProfileIcon} style={styles.ProfileView} resizeMode={"cover"} />
-              <View style={styles.cameraIconContainer}>
-                <TouchableOpacity onPress={() => setModalVisible(true)}>
-                  <AntDesign name="camera" size={30} color="#EE7214" style={styles.cameraIcon} />
+            {isLoading ? (
+              <View style={styles.loadingContainer}>
 
+                {/* Additional components for cleaner main function */}
+
+                <ActivityIndicator size="large" color="#0000ff" />
+                <View style={styles.uploadProgressContainer}>
+                  <Text>Please Wait....</Text>
+
+                  <View style={{ marginTop: 10 }}>
+                    {uploadProgress > 0 && (
+                      <Text>Update Complete: {uploadProgress.toFixed(0)}%</Text>
+                    )}
+                  </View>
+                  <View style={{ marginTop: 20 }}>
+
+                    {uploadProgress > 0 && (
+                      <Progress.Bar progress={uploadProgress / 100} width={200} />
+                    )}
+                  </View>
+                </View>
+
+              </View>
+            ) : (
+              <>
+                <TouchableOpacity onPress={() => navigation.goBack()}>
+                  <AntDesign name="arrowleft" size={28} color="black" />
                 </TouchableOpacity>
-              </View>
-            </View>
 
 
-            <View style={styles.inputFieldContainer}>
+                <View style={styles.ProfileImage}>
+                  <Image source={typeof profile === 'string' ? { uri: profile } : profile} style={styles.ProfileView} resizeMode="cover" />
+                  <View style={styles.cameraIconContainer}>
+                    <TouchableOpacity onPress={() => setModalVisible(true)}>
+                      <AntDesign name="camera" size={30} color="#EE7214" style={styles.cameraIcon} />
+                    </TouchableOpacity>
+                  </View>
+                </View>
 
-              <Text style={[GbStyle.NormalText, { textAlign: "left", alignSelf: "flex-start", color: "#000000" }]}>First Name</Text>
-              <View style={styles.inputFieldcontainer}>
-                <Octicons name="person" size={28} color="#625D5D" />
-                <TextInput value={firstName} placeholder="Roshan Uchai" placeholderTextColor={"#000000"} onChangeText={SetFirstname} style={[GbStyle.inputText, { width: "90%", marginLeft: 10, color: "black" }]} />
-              </View>
+                <View style={styles.inputFieldContainer}>
 
-              <Text style={[GbStyle.NormalText, { textAlign: "left", alignSelf: "flex-start", color: "#000000" }]}>Last Name</Text>
-              <View style={styles.inputFieldcontainer}>
-                <Octicons name="person" size={28} color="#625D5D" />
-                <TextInput value={lastName} placeholder="Roshan Uchai" placeholderTextColor={"#000000"} onChangeText={SetLastname} style={[GbStyle.inputText, { width: "90%", marginLeft: 10, color: "black" }]} />
-              </View>
+                  <Text style={[GbStyle.NormalText, { textAlign: "left", alignSelf: "flex-start", color: "#000000" }]}>First Name</Text>
+                  <View style={styles.inputFieldcontainer}>
+                    <Octicons name="person" size={28} color="#625D5D" />
+                    <TextInput
+                      value={firstName}
+                      onChangeText={setFirstname}
+                      placeholder="First Name"
+                      placeholderTextColor="#000000"
+                      style={[GbStyle.inputText, { width: "90%", marginLeft: 10, color: "black" }]}
+                    />
+                  </View>
+
+                  <Text style={[GbStyle.NormalText, { textAlign: "left", alignSelf: "flex-start", color: "#000000" }]}>Last Name</Text>
+                  <View style={styles.inputFieldcontainer}>
+                    <Octicons name="person" size={28} color="#625D5D" />
+                    <TextInput
+                      value={lastName}
+                      onChangeText={setLastname}
+                      placeholder="Last Name"
+                      placeholderTextColor="#000000"
+                      style={[GbStyle.inputText, { width: "90%", marginLeft: 10, color: "black" }]}
+                    />
+                  </View>
+
+                  <Text style={[GbStyle.NormalText, { textAlign: "left", alignSelf: "flex-start", color: "#000000" }]}>Contact</Text>
+                  <View style={styles.inputFieldcontainer}>
+                    <AntDesign name="phone" size={28} color="#625D5D" />
+                    <TextInput
+                      value={contact}
+                      onChangeText={setContact}
+                      placeholder="Contact Number"
+                      placeholderTextColor="#000000"
+                      style={[GbStyle.inputText, { width: "90%", marginLeft: 10, color: "black" }]}
+                    />
+                  </View>
+
+                  <Text style={[GbStyle.NormalText, { textAlign: "left", alignSelf: "flex-start", color: "#000000" }]}>Current Password</Text>
+                  <View style={styles.inputFieldcontainer}>
+                    <AntDesign name="lock" size={28} color="#625D5D" />
+                    <TextInput
+                      value={currentPassword}
+                      onChangeText={setCurrentPassword}
+                      placeholder="Current Password"
+                      placeholderTextColor="#000000"
+                      secureTextEntry={!newPasswordVisible}
+                      autoComplete='off'
+                      style={[GbStyle.inputText, { width: "90%", marginLeft: 10, color: "black" }]}
+                    />
+                    <TouchableOpacity onPress={toggleNewPasswordVisibility} style={{ marginLeft: -30 }}>
+                      <Ionicons name={newPasswordVisible ? "eye" : "eye-off"} size={28} color="#625D5D" />
+                    </TouchableOpacity>
+                  </View>
+
+                  <Text style={[GbStyle.NormalText, { textAlign: "left", alignSelf: "flex-start", color: "#000000" }]}>New Password</Text>
+                  <View style={styles.inputFieldcontainer}>
+                    <AntDesign name="lock" size={28} color="#625D5D" />
+                    <TextInput
+                      value={newPassword}
+                      onChangeText={setNewPassword}
+                      placeholder="New Password"
+                      placeholderTextColor="#000000"
+                      secureTextEntry={!newPasswordVisible}
+                      autoComplete='off'
+                      style={[GbStyle.inputText, { width: "90%", marginLeft: 10, color: "black" }]}
+                    />
+                  </View>
+                </View>
+
+
+                <View style={styles.btnContainer}>
+                  <TouchableOpacity style={GbStyle.solidButton} onPress={updateData}>
+                    <Text style={GbStyle.ButtonColorAndFontSize}>Update</Text>
+                  </TouchableOpacity>
+                </View>
 
 
 
-              <Text style={[GbStyle.NormalText, { textAlign: "left", alignSelf: "flex-start", color: "#000000" }]}>Contact</Text>
+                <ImageUpload isVisible={modalVisible} onClose={() => setModalVisible(false)} onUpload={handleImageUpload} onCameraCapture={CameraCaptionNavigation} />
 
-              <View style={[styles.inputFieldcontainer]}>
-                <AntDesign name="phone" size={28} color="#625D5D" />
-                <TextInput value={contact} placeholder={contact} placeholderTextColor={"#000000"} onChangeText={setContact} style={[GbStyle.inputText, { width: "90%", marginLeft: 10, color: "black" }]} />
-              </View>
-
-
-              <Text style={[GbStyle.NormalText, { textAlign: "left", alignSelf: "flex-start", color: "#000000" }]}>Current Password</Text>
-
-              <View style={styles.inputFieldcontainer}>
-                <AntDesign name="lock" size={28} color="#625D5D" />
-                <TextInput value={currentPassword} placeholder={currentPassword} placeholderTextColor={"#000000"} onChangeText={SetCurrentPassword} secureTextEntry={secureText} autoComplete='off' style={[GbStyle.inputText, { width: "90%", marginLeft: 10, color: "black" }]} />
-
-                <TouchableOpacity onPress={currentPasswordVisibleIcon}>
-                  <Ionicons name={currentPasswordVisible} size={28} color="#625D5D" style={{ marginLeft: -20 }} />
-                </TouchableOpacity>
-              </View> 
-
-              <Text style={[GbStyle.NormalText, { textAlign: "left", alignSelf: "flex-start", color: "#000000" }]}>New Password</Text>
-
-              <View style={styles.inputFieldcontainer}>
-                <AntDesign name="lock" size={28} color="#625D5D" />
-                <TextInput value={newPassword} placeholder={newPassword} placeholderTextColor={"#000000"} onChangeText={SetNewPassword} secureTextEntry={newSecureText} autoComplete='off' style={[GbStyle.inputText, { width: "90%", marginLeft: 10, color: "black" }]} />
-
-                <TouchableOpacity onPress={newPasswordVisibleIcon}>
-                  <Ionicons name={newPasswordVisible} size={28} color="#625D5D" style={{ marginLeft: -20 }} />
-                </TouchableOpacity>
-              </View>
-
-
-            </View>
-
-
-            <View style={styles.btnContainer}>
-
-              {/* <TouchableOpacity style={GbStyle.solidButton} onPress={() => navigation.navigate("profileScreen")}> */}
-              <TouchableOpacity style={GbStyle.solidButton} onPress={updateData}>
-                <Text style={[GbStyle.ButtonColorAndFontSize]} >Update </Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* ImageUpload modal */}
-            <ImageUpload isVisible={modalVisible} onClose={() => setModalVisible(false)} onUpload={handleImageUpload} />
-
+              </>)}
           </View>
         </ScrollView>
-
-
       </SafeAreaView>
     </KeyboardAvoidingView>
-
-
-
-
-  )
-}
-
+  );
+};
 
 const styles = StyleSheet.create({
-
+  uploadProgressContainer: {
+    flexDirection: "column",
+    alignItems: "center",
+    marginVertical: 30,
+    justifyContent: "space-between"
+  },
 
   container: {
     flex: 1,
     justifyContent: "flex-start",
     width: "100%",
     height: "auto",
-    padding: 30
-
+    padding: 30,
+    paddingTop: 3
   },
 
   inputFieldcontainer: {

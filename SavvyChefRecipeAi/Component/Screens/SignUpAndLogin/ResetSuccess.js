@@ -17,7 +17,7 @@ const ResetSuccess = ({ navigation }) => {
           <View style={styles.MainContainer}>
             <View style={styles.headertextContainer}>
 
-              <TouchableOpacity onPress={() => navigation.navigate("welcomeScreen")}>
+              <TouchableOpacity onPress={() => navigation.navigate("Welcome")}>
                 <AntDesign name="arrowleft" size={28} color="white" />
               </TouchableOpacity>
 
@@ -28,7 +28,7 @@ const ResetSuccess = ({ navigation }) => {
 
             <View style={styles.btnContainer}>
 
-              <TouchableOpacity style={GbStyle.solidButton} onPress={() => navigation.navigate("loginScreen")}>
+              <TouchableOpacity style={GbStyle.solidButton} onPress={() => navigation.navigate("Login")}>
                 <Text style={GbStyle.ButtonColorAndFontSize} >Return Back</Text>
               </TouchableOpacity>
             </View>
