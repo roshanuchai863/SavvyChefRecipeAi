@@ -132,8 +132,11 @@ const Styles = {
     chatBotIcon: require("../assets/images/chatbot.png"),
     GroceriesIcon: require("../assets/images/groceries.png"),
     subscriptionIcon: require("../assets/images/credit-cards.png"),
+    Ingredientbg: require("../assets/images/IngredientImage.jpg"),
+    panfry: require("../assets/images/Panfry.png"),
     SettingIcon: require("../assets/images/settings.png"),
     HomeIcon: require("../assets/images/home.png"),
+    MainHomeIcon: require("../assets/images/MainHomeIcon.png"),
 
     
 
