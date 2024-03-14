@@ -16,8 +16,16 @@ import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../../Firebase/Config';
 import GbStyle from '../../../Global/Styles';
+import TabNavigator from '../Navigation/TabNavigator';
+import SettingStackScreen from '../Navigation/SettingStackScreen';
+import { useNavigation } from '@react-navigation/native';
 
-const LoginScreen = ({ navigation }) => {
+
+const LoginScreen = () => {
+  
+const navigation = useNavigation();
+
+
   const [email, setEmail] = useState('thakuriroshan863@gmail.com');
   const [password, setPassword] = useState('Roshanmalla24@@');
   const [secureText, setSecureText] = useState(true);
@@ -64,9 +72,7 @@ const LoginScreen = ({ navigation }) => {
       await signInWithEmailAndPassword(auth, email, password);
       console.log('Login success');
       // Navigates to the main app screen upon successful login
-
-      navigation.navigate('Tab Navigator');
-    } catch (error) {
+          } catch (error) {
       // Logs and alerts the user of any login errors
 
       console.error('Login failed', error);

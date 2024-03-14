@@ -7,6 +7,7 @@ import EditProfile from '../User/EditProfile';
 import { Image } from 'react-native';
 import GbStyle from "../../../Global/Styles"
 import SaveFavorite from '../User/SaveFavorite';
+import { initializeApp } from 'firebase/app';
 
 const Tab = createBottomTabNavigator();
 
@@ -19,7 +20,7 @@ const TabNavigator = () => {
 
           if (route.name === 'Home') {
 
-            iconSource = GbStyle.HomeIcon;
+            iconSource = GbStyle.MainHomeIcon;
 
           } else if (route.name === 'Profile') {
             iconSource = GbStyle.chatBotIcon;
@@ -32,7 +33,7 @@ const TabNavigator = () => {
           }
 
 
-         
+
           return <Image source={iconSource} style={{ width: 25, height: 30 }} resizeMode="contain" />;
         },
         tabBarActiveTintColor: 'tomato',
@@ -49,8 +50,8 @@ const TabNavigator = () => {
 
       })
 
-
       }
+    
     >
 
 
