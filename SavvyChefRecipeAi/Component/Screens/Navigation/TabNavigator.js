@@ -8,6 +8,9 @@ import { Image } from 'react-native';
 import GbStyle from "../../../Global/Styles"
 import SaveFavorite from '../User/SaveFavorite';
 import { initializeApp } from 'firebase/app';
+import Edaman from '../AI/Edaman';
+
+
 
 const Tab = createBottomTabNavigator();
 
@@ -55,8 +58,9 @@ const TabNavigator = () => {
     >
 
 
+
+      <Tab.Screen name="edaman" component={Edaman} />
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
       <Tab.Screen name="Save" component={SaveFavorite} />
 
 

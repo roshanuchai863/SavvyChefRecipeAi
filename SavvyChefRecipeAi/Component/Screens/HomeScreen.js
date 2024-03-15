@@ -49,7 +49,7 @@ const Home = ({ navigation }) =>{
 
 
             <View style={styles.btnContainer}>
-              <TouchableOpacity style={GbStyle.solidButton}  onPress={() => navigation.navigate("")}>
+              <TouchableOpacity style={GbStyle.solidButton}  onPress={() => navigation.navigate("edaman")}>
                 <Text style={GbStyle.ButtonColorAndFontSize}>Upload</Text>
               </TouchableOpacity>
             </View>
