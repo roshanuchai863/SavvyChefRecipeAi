@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.8,
     shadowRadius: 20,
-    elevation: 5, // for Android
+    elevation: 5, 
     margin: 20,
     display: 'flex',
     flexDirection: 'column',

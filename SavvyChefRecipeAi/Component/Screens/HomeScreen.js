@@ -7,21 +7,21 @@ import GlobalContext from "./Navigation/GlobalContext";
 
 const Home = ({ navigation }) =>{
 
-  const { userData, setCameraPictureCapture, CameraPictureCapture } = useContext(GlobalContext);
+  // const { userData, setCameraPictureCapture, CameraPictureCapture } = useContext(GlobalContext);
 
   const [image, setImage] = useState(GbStyle.panfry);
   const [modalVisible, setModalVisible] = useState(false);
 
-  // Navigate to camera for picture capture
-  function CameraCaptionNavigation() {
-    setModalVisible(false)
-    navigation.navigate('Camera');
-  }
-  const handleImageUpload = (url) => {
-    setCameraPictureCapture(url);
-    setModalVisible(false);
-    navigation.navigate('Image');
-  };
+  // // Navigate to camera for picture capture
+  // function CameraCaptionNavigation() {
+  //   setModalVisible(false)
+  //   navigation.navigate('Camera');
+  // }
+  // const handleImageUpload = (url) => {
+  //   setCameraPictureCapture(url);
+  //   setModalVisible(false);
+  //   navigation.navigate('Image');
+  // };
 
 
   return (

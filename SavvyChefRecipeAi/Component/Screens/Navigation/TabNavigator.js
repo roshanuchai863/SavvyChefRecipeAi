@@ -54,13 +54,11 @@ const TabNavigator = () => {
       })
 
       }
-    
+
     >
 
-
-
-      <Tab.Screen name="edaman" component={Edaman} />
       <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="edaman" component={Edaman} />
       <Tab.Screen name="Save" component={SaveFavorite} />
 
 
