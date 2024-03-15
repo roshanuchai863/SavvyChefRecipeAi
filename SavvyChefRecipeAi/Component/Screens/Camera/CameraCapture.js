@@ -37,8 +37,8 @@ export default function CameraCapture({ navigation }) {
         if (image) {
             try {
                 const asset = await MediaLibrary.createAssetAsync(image);
-                setCameraPictureCapture(asset.uri)
-                navigation.goBack();
+                
+                navigation.navigate('editProfile', setCameraPictureCapture(asset.uri));
 
             } catch (error) {
                 console.error("Error saving image:", error);

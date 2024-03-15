@@ -1,4 +1,6 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState , useContext,useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+
 import { KeyboardAvoidingView, Text, StyleSheet, Image, View, TextInput, ActivityIndicator, TouchableOpacity, Platform, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AntDesign, Ionicons, Octicons } from '@expo/vector-icons';
@@ -46,13 +48,25 @@ const EditProfile = ({ navigation }) => {
 
 
   // Effect hook for handling camera picture capture updates
-  useEffect(() => {
-    if (CameraPictureCapture) {
-      setProfile(CameraPictureCapture);
-      setModalVisible(false);
-      setCameraPictureCapture(null)
-    }
-  }, [CameraPictureCapture]);
+  // useEffect(() => {
+  //   if (CameraPictureCapture) {
+  //     setProfile(CameraPictureCapture);
+  //     setModalVisible(false);
+  //     setCameraPictureCapture(null)
+  //   }
+
+  //   console.log(CameraPictureCapture);
+  // }, [CameraPictureCapture]);
+
+  useFocusEffect(
+    useCallback(() => {
+        if (CameraPictureCapture) {
+            setProfile(CameraPictureCapture);
+            setModalVisible(false);
+            setCameraPictureCapture(null);
+        }
+    }, [CameraPictureCapture])
+);
 
   // Validation for input fields
   const inputFieldValidation = () => {
@@ -206,7 +220,7 @@ const EditProfile = ({ navigation }) => {
               </View>
             ) : (
               <>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
+                <TouchableOpacity onPress={() => navigation.navigate("Profile")}>
                   <AntDesign name="arrowleft" size={28} color="black" />
                 </TouchableOpacity>
 
