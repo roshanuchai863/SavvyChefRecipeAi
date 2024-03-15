@@ -105,6 +105,8 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
+    borderWidth:2,
+    borderColor:"#EE7214"
   },
   userName: {
     marginTop: 10,

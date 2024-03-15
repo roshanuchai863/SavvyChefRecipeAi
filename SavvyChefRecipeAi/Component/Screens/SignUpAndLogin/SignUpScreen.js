@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Text,
   StyleSheet,
@@ -10,23 +10,25 @@ import {
   SafeAreaView,
   TextInput,
   Alert,
-  Platform,
+  Platform
 } from 'react-native';
 import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
-import { collection, setDoc, doc } from 'firebase/firestore';
-import { auth, db } from '../../../Firebase/Config';
+import { auth } from '../../../Firebase/Config';
 import GbStyle from '../../../Global/Styles';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+
 
 const SignUpScreen = ({ navigation }) => {
 
   // State hooks for managing user inputs and UI state
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('roshancreative863@gmail.com');
+  const [password, setPassword] = useState('Roshanmalla24@');
+  const [confirmPassword, setConfirmPassword] = useState('Roshanmalla24@');
+  const [firstName, setFirstName] = useState('Roshan');
+  const [lastName, setLastName] = useState('Uchai');
+  const [phone, setPhone] = useState('0410927767');
 
   // Manage password visibility toggle
   const [secureText, setSecureText] = useState(true);
@@ -95,30 +97,13 @@ const SignUpScreen = ({ navigation }) => {
 
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      // Sign out the user after account creation
+      auth.signOut();
       await sendEmailVerification(userCredential.user);
 
       Alert.alert('Success', 'Verification email sent. Please check your inbox.');
 
-      // User data to be saved in Firestore
-      const userData = {
-        Payment: {
-          SubscriptionStatus: 'Free',
-          SubscriptionDate: '',
-          DailyLimit: 20,
-        },
-        UserDetails: {
-          Email: email,
-          FirstName: firstName,
-          LastName: lastName,
-          Phone: phone,
-          ProfileImage: "",
-        },
-      };
-
-      await setDoc(doc(db, 'Personal Details', userCredential.user.uid), userData);
-
-      // Sign out the user after account creation
-      await auth.signOut();
+      storeData(firstName, lastName, phone);
 
       // Navigate to the login screen or another appropriate screen
       navigation.navigate('Login');
@@ -127,6 +112,19 @@ const SignUpScreen = ({ navigation }) => {
       Alert.alert('Error', error.message);
     }
   };
+
+
+
+  const storeData = async (firstName, lastName, phone) => {
+    try {
+      await AsyncStorage.setItem('firstName', firstName);
+      await AsyncStorage.setItem('lastName', lastName);
+      await AsyncStorage.setItem('phone', phone);
+    } catch (e) {
+      Alert.alert("Error", "Could not store your personal data", e);
+    }
+  };
+  
 
   return (
     <ImageBackground source={GbStyle.SignUpScreenBg} resizeMode='cover' blurRadius={3} style={styles.backgroundImage}>
