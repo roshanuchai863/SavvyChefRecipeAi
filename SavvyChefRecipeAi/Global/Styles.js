@@ -135,6 +135,7 @@ const Styles = {
     Ingredientbg: require("../assets/images/IngredientImage.jpg"),
     panfry: require("../assets/images/Panfry.png"),
     SettingIcon: require("../assets/images/settings.png"),
+    CookBookIcon: require("../assets/images/cookbook.png"),
     HomeIcon: require("../assets/images/home.png"),
     MainHomeIcon: require("../assets/images/MainHomeIcon.png"),
 

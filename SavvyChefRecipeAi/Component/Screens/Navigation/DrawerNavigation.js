@@ -1,18 +1,17 @@
 import React, { useContext, useEffect, useState } from 'react';
 import GlobalContext from './../Navigation/GlobalContext';
-import { View, StyleSheet, Image, Text, TouchableOpacity } from 'react-native'
+import { View, StyleSheet, Text, TouchableOpacity } from 'react-native'
 import Icon from 'react-native-vector-icons/FontAwesome'
-import GbStyle from "../../../Global/Styles";
 import { FontAwesome5 } from '@expo/vector-icons';
 // Update your DrawerNavigator to use the CustomDrawerContent
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import SettingScreen from '../User/SettingScreen';
-import HomeScreen from '../HomeScreen';
 import ProfileScreen from '../User/ProfileScreen';
 import EditProfile from '../User/EditProfile';
 import SettingStackScreen from './SettingStackScreen';
-import Edaman from '../AI/Edaman';
+import RecipeDetails
 
+from '../AI/RecipeDetails ';
 const Drawer = createDrawerNavigator();
 
 function DrawerNavigation() {
@@ -112,6 +111,20 @@ function DrawerNavigation() {
                     fontSize: 20,
                 },
             }} />
+            <Drawer.Screen name="RecipeDetails" component={RecipeDetails} options={{
+                title: 'Recipe Details',
+                headerStyle: {
+                    backgroundColor: '#f4511e',
+                },
+                headerTintColor: '#fff',
+                headerTitleStyle: {
+                    fontWeight: 'bold',
+                    fontSize: 20,
+                },
+            }} />
+
+
+
 
         </Drawer.Navigator>
     );

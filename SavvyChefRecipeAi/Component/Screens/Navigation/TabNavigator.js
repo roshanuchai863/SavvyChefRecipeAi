@@ -1,15 +1,11 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeScreen from "../HomeScreen";
-import ProfileScreen from '../User/ProfileScreen';
 import SettingScreen from '../User/SettingScreen';
-import EditProfile from '../User/EditProfile';
 import { Image } from 'react-native';
 import GbStyle from "../../../Global/Styles"
 import SaveFavorite from '../User/SaveFavorite';
-import { initializeApp } from 'firebase/app';
 import Edaman from '../AI/Edaman';
-
 
 
 const Tab = createBottomTabNavigator();
@@ -23,7 +19,7 @@ const TabNavigator = () => {
 
           if (route.name === 'Home') {
 
-            iconSource = GbStyle.MainHomeIcon;
+            iconSource = GbStyle.HomeIcon;
 
           } else if (route.name === 'Profile') {
             iconSource = GbStyle.chatBotIcon;
@@ -34,10 +30,15 @@ const TabNavigator = () => {
 
             iconSource = GbStyle.SettingIcon;
           }
+          else if (route.name === 'Edaman') {
+
+            iconSource = GbStyle.CookBookIcon;
+
+          }
 
 
 
-          return <Image source={iconSource} style={{ width: 25, height: 30 }} resizeMode="contain" />;
+          return <Image source={iconSource} style={{ width: 30, height: 30 }} resizeMode="contain" />;
         },
         tabBarActiveTintColor: 'tomato',
         tabBarInactiveTintColor: 'gray',
@@ -52,13 +53,13 @@ const TabNavigator = () => {
 
 
       })
-
       }
+      initialRouteName='Edaman'
 
     >
 
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="edaman" component={Edaman} />
+      <Tab.Screen name="Edaman" component={Edaman} />
       <Tab.Screen name="Save" component={SaveFavorite} />
 
 

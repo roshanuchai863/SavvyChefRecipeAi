@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Text,
   StyleSheet,
@@ -13,21 +13,22 @@ import {
   Platform,
 } from 'react-native';
 import { AntDesign, Ionicons } from '@expo/vector-icons';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../../Firebase/Config';
+import { signInWithEmailAndPassword ,sendEmailVerification } from 'firebase/auth';
+import { auth, db } from '../../../Firebase/Config';
 import GbStyle from '../../../Global/Styles';
-import TabNavigator from '../Navigation/TabNavigator';
-import SettingStackScreen from '../Navigation/SettingStackScreen';
 import { useNavigation } from '@react-navigation/native';
+import { getDoc, setDoc, doc } from 'firebase/firestore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
+{/* <LoginScreen email={email} lastName={lastName} phone={phone}/> */}
 
-const LoginScreen = () => {
-  
+const LoginScreen = ( ) => {
+
 const navigation = useNavigation();
 
 
-  const [email, setEmail] = useState('thakuriroshan863@gmail.com');
-  const [password, setPassword] = useState('Roshanmalla24@@');
+  const [email, setEmail] = useState('roshancreative863@gmail.com');
+  const [password, setPassword] = useState('Roshanmalla24@');
   const [secureText, setSecureText] = useState(true);
   const [passwordVisible, setPasswordVisible] = useState('eye-off-outline');
 
@@ -62,23 +63,95 @@ const navigation = useNavigation();
     return true;
   };
 
-  // Handles the login process
+  // // Handles the login process
+  // const handleLogin = async () => {
+  //   // Stops the login process if validation fails
+  //   if (!validation()) return;
+
+  //   try {
+  //     // Attempts to sign in the user with Firebase authentication
+  //     await signInWithEmailAndPassword(auth, email, password);
+
+
+  //     // Navigates to the main app screen upon successful login
+  //         } catch (error) {
+  //     // Logs and alerts the user of any login errors
+
+  //     console.error('Login failed', error);
+  //     Alert.alert('Login Failed', error.message);
+  //   }
+  // };
   const handleLogin = async () => {
-    // Stops the login process if validation fails
     if (!validation()) return;
 
     try {
-      // Attempts to sign in the user with Firebase authentication
-      await signInWithEmailAndPassword(auth, email, password);
-      console.log('Login success');
-      // Navigates to the main app screen upon successful login
-          } catch (error) {
-      // Logs and alerts the user of any login errors
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
 
-      console.error('Login failed', error);
-      Alert.alert('Login Failed', error.message);
+
+        if (!user.emailVerified) {
+            // User's email is not verified
+            Alert.alert(
+                "Email Not Verified",
+                "Please verify your email to proceed. Check your inbox for the verification email.",
+                [
+                    {
+                        text: "Resend Verification Email",
+                        onPress: async () => {
+                            try {
+                                await sendEmailVerification(user);
+                                Alert.alert("Verification Email Sent", "Check your email to verify your account.");
+                            } catch (error) {
+                                console.error("Error sending verification email", error);
+                                Alert.alert("Error", "Failed to send verification email. Please try again later.");
+                            }
+                        }
+                    },
+                    { text: "OK" }
+                ]
+            );
+            await auth.signOut(); // Ensure the user is logged out if not verified
+            navigation.navigate('Login'); 
+        } 
+        
+          else {
+            // Check if the user document already has Payment and UserDetails
+            const userDocRef = doc(db, 'Personal Details', user.uid);
+            const userDocSnap = await getDoc(userDocRef);
+      
+            // Only set Payment and UserDetails if they don't exist
+            if (!userDocSnap.exists() || !userDocSnap.data().Payment || !userDocSnap.data().UserDetails) {
+              const userData = {
+                Payment: {
+                  SubscriptionStatus: 'Free',
+                  SubscriptionDate: '',
+                  DailyLimit: 20,
+                },
+                UserDetails: {
+                  Email: email,
+                  FirstName: await AsyncStorage.getItem("firstName"),
+                  LastName: await AsyncStorage.getItem("lastName"),
+                  Phone: await AsyncStorage.getItem("phone"),
+                  ProfileImage: ""
+                },
+              };
+      
+              await setDoc(userDocRef, userData, { merge: true });
+            }
+  
+      await AsyncStorage.removeItem("firstName")
+      await AsyncStorage.removeItem("lastName")
+      await AsyncStorage.removeItem("phone")
+     
+        }
+    } catch (error) {
+        console.error('Login failed', error);
+        Alert.alert('Login Failed', error.message);
     }
-  };
+};
+
+
+
 
   return (
     <ImageBackground source={GbStyle.LogInScreenBg} resizeMode='cover' blurRadius={3} style={styles.backgroundImage}>

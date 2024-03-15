@@ -5,24 +5,16 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { doc, onSnapshot } from "firebase/firestore";
 import { auth, onAuthStateChanged, db } from "./Firebase/Config";
 import GlobalContext from './Component/Screens/Navigation/GlobalContext';
-import  GbStyle from "./Global/Styles";
-import {Image} from "react-native"
+
+
+
 
 // Importing screens for navigation
 import WelcomeScreen from "./Component/Screens/SignUpAndLogin/WelcomeScreen";
 import LoginScreen from "./Component/Screens/SignUpAndLogin/LoginScreen";
 import SignUpScreen from "./Component/Screens/SignUpAndLogin/SignUpScreen";
 import ResetPassword from "./Component/Screens/SignUpAndLogin/ResetPassword";
-import HomeScreen from "./Component/Screens/HomeScreen";
 import ResetSuccess from './Component/Screens/SignUpAndLogin/ResetSuccess';
-import ProfileScreen from './Component/Screens/User/ProfileScreen';
-import EditProfile from './Component/Screens/User/EditProfile';
-import ImageUpload from './Component/Screens/UploadImage';
-import SettingScreen from './Component/Screens/User/SettingScreen';
-import CameraCapture from './Component/Screens/Camera/CameraCapture';
-import TabNavigator from './Component/Screens/Navigation/TabNavigator';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import SettingStackScreen from './Component/Screens/Navigation/SettingStackScreen';
 import DrawerNavigation from './Component/Screens/Navigation/DrawerNavigation';
 
 
@@ -30,7 +22,6 @@ import DrawerNavigation from './Component/Screens/Navigation/DrawerNavigation';
 
 // Creating navigation stack and tab instances
 const Stack = createNativeStackNavigator();
-const Tab = createBottomTabNavigator()
 
 
 export default function App() {
@@ -43,25 +34,26 @@ export default function App() {
   const [CameraPictureCapture, setCameraPictureCapture] = useState(null)
 
 
+
   // Authentication state listener to manage user sign-in state
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
 
         // User is signed in, fetch user details from Firestore
-        console.log("User is signed in:", currentUser);
+  
         firestoreRetrieve(currentUser.uid)
         setUser(currentUser);
         setUserID(currentUser.uid)
 
-        console.log("User id is :", userId);
 
       }
       else {
-
         // User is signed out, reset state
         setUser(null);
         setUserID(null);
+      
+
       }
     });
     console.log("userData profile is ", userData.profile)
@@ -69,7 +61,7 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-
+  
   // Function to fetch user details from Firestore and update local state
   const firestoreRetrieve = (uid) => {
     if (!uid) {
@@ -123,7 +115,9 @@ export default function App() {
     <NavigationContainer>
 
       {/* If user is signed in, provide user data through global context and render the main app stack */}
-      {auth.currentUser ? (
+      {auth.currentUser? (
+
+        
         <GlobalContext.Provider value={{ userData, user, userId, CameraPictureCapture, setCameraPictureCapture, resetGlobalContext }}>
          <DrawerNavigation />
         </GlobalContext.Provider >
