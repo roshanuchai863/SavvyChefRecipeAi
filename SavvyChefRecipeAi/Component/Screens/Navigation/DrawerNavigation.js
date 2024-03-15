@@ -11,7 +11,7 @@ import HomeScreen from '../HomeScreen';
 import ProfileScreen from '../User/ProfileScreen';
 import EditProfile from '../User/EditProfile';
 import SettingStackScreen from './SettingStackScreen';
-
+import Edaman from '../AI/Edaman';
 
 const Drawer = createDrawerNavigator();
 
@@ -98,6 +98,9 @@ function DrawerNavigation() {
                     alignContent:'center'
                 },
             }} />
+            
+            
+
             <Drawer.Screen name="editProfile" component={EditProfile} options={{
                 title: 'Edit Profile',
                 headerStyle: {
