@@ -1,13 +1,12 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeScreen from "../HomeScreen";
-import SettingScreen from '../User/SettingScreen';
+import SettingScreen from './SettingScreen';
 import { Image } from 'react-native';
 import GbStyle from "../../../Global/Styles"
 import SaveFavorite from '../User/SaveFavorite';
 import Edaman from '../AI/Edaman';
-
-
+// import ImageVision from '../AI/ImageVision';
 const Tab = createBottomTabNavigator();
 
 const TabNavigator = () => {
@@ -54,14 +53,14 @@ const TabNavigator = () => {
 
       })
       }
-      initialRouteName='Edaman'
-
     >
 
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Edaman" component={Edaman} />
       <Tab.Screen name="Save" component={SaveFavorite} />
+      {/* <Tab.Screen name="imageVision" component={ImageVision} /> */}
 
+      {/* ImageVision */}
 
       <Tab.Screen
         name="Setting"

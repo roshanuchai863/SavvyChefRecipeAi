@@ -10,6 +10,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { Zocial } from '@expo/vector-icons';
 import GlobalContext from '../Navigation/GlobalContext';
 
+
 const ProfileScreen = () => {
 
   // Local state for handling potential errors and profile image URL
@@ -47,7 +48,7 @@ const ProfileScreen = () => {
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <View style={styles.ProfileImage}>
             <Image source={profile ? { uri: profile } : GbStyle.ProfileIcon} style={styles.ProfileView} resizeMode={"cover"} />
-
+        
           </View>
 
           <View style={[GbStyle.mainTitle, {}]}>

@@ -130,6 +130,7 @@ const Styles = {
     DeleteBinIcon: require("../assets/images/delete.png"),
     ProfileIcon: require("../assets/images/user.png"),
     chatBotIcon: require("../assets/images/chatbot.png"),
+    HomeBgImage: require("../assets/images/HomeBgImage.jpg"),
     GroceriesIcon: require("../assets/images/groceries.png"),
     subscriptionIcon: require("../assets/images/credit-cards.png"),
     Ingredientbg: require("../assets/images/IngredientImage.jpg"),
@@ -138,6 +139,7 @@ const Styles = {
     CookBookIcon: require("../assets/images/cookbook.png"),
     HomeIcon: require("../assets/images/home.png"),
     MainHomeIcon: require("../assets/images/MainHomeIcon.png"),
+    AtmIcon: require("../assets/images/atm.jpg"),
 
     
 

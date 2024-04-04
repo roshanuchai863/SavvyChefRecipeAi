@@ -5,30 +5,46 @@ import {
   Image,
   TouchableOpacity,
   Text,
-  ScrollView,
+  Alert,
 } from 'react-native';
 import { DrawerContentScrollView, DrawerItem, DrawerItemList } from '@react-navigation/drawer';
 import { AntDesign, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import GbStyle from "../../../Global/Styles";
 import { auth } from "../../../Firebase/Config";
-import GlobalContext from './../Navigation/GlobalContext';
-
-
+import GlobalContext from './GlobalContext';
+import { useNavigation } from '@react-navigation/native';
+import AsyncStorage
+  from '@react-native-async-storage/async-storage';
 // Custom Drawer Content component
 const SettingScreen = (props) => {
   const { userData, setCameraPictureCapture, cameraPictureCapture, resetGlobalContext } = useContext(GlobalContext);
   const [profile, setProfile] = useState("");
+  const navigation = useNavigation();
 
   const Logout = async () => {
     try {
       await auth.signOut();
       resetGlobalContext();
-      // Navigate to the welcome or login screen after logout
-      props.navigation.replace('Welcome');
     } catch (error) {
       console.log("Logout Error: ", error);
     }
   };
+
+  clearAllData = () => {
+    try {
+        AsyncStorage.clear(err => {
+            if (err) {
+                console.log("Error clearing AsyncStorage:", err);
+            } else {
+                console.log("All data cleared from AsyncStorage");
+            }
+        });
+    } catch (error) {
+        console.error('Error clearing AsyncStorage data:', error);
+    }
+}
+
+
 
   // Set profile picture from camera capture or use default
   useEffect(() => {
@@ -59,7 +75,7 @@ const SettingScreen = (props) => {
         )}
         label="Home"
         labelStyle={{ color: '#000', fontSize: 16, fontWeight: '400' }}
-        onPress={() => props.navigation.navigate("Home")}
+        onPress={() => props.navigation.navigate("Main")}
       />
 
       <DrawerItem
@@ -77,8 +93,18 @@ const SettingScreen = (props) => {
         )}
         label="Subscription"
         labelStyle={{ color: '#000', fontSize: 16, fontWeight: '400' }}
-        onPress={() => props.navigation.navigate("Subscription")}
+        onPress={() => props.navigation.navigate("paymentScreen")}
       />
+
+      <DrawerItem
+        icon={() => (
+          <MaterialIcons name="delete-outline" size={30} color="#EE7214" style={{ marginRight: -15 }} />
+        )}
+        label="Wipe Local Storage"
+        labelStyle={{ color: '#000', fontSize: 16, fontWeight: '400' }}
+        onPress={clearAllData}
+      />
+
 
       <DrawerItem
         icon={() => (
@@ -88,8 +114,6 @@ const SettingScreen = (props) => {
         labelStyle={{ color: '#000', fontSize: 16, fontWeight: '400' }}
         onPress={Logout}
       />
-
-
 
     </DrawerContentScrollView>
   );
@@ -105,8 +129,8 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    borderWidth:2,
-    borderColor:"#EE7214"
+    borderWidth: 2,
+    borderColor: "#EE7214"
   },
   userName: {
     marginTop: 10,

@@ -20,6 +20,10 @@ export default function CameraCapture({ navigation }) {
             setHasCameraPermission(status === 'granted');
             await MediaLibrary.requestPermissionsAsync();
         })();
+
+        return () => {
+            setImage(null);
+        };
     }, []);
 
     if (hasCameraPermission === false) {

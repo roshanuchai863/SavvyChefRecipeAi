@@ -5,8 +5,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { doc, onSnapshot } from "firebase/firestore";
 import { auth, onAuthStateChanged, db } from "./Firebase/Config";
 import GlobalContext from './Component/Screens/Navigation/GlobalContext';
-
-
+import { Publishable_key, GoogleVision_API_KEY} from '@env'
+import { StripeProvider } from '@stripe/stripe-react-native';
 
 
 // Importing screens for navigation
@@ -16,7 +16,7 @@ import SignUpScreen from "./Component/Screens/SignUpAndLogin/SignUpScreen";
 import ResetPassword from "./Component/Screens/SignUpAndLogin/ResetPassword";
 import ResetSuccess from './Component/Screens/SignUpAndLogin/ResetSuccess';
 import DrawerNavigation from './Component/Screens/Navigation/DrawerNavigation';
-
+import StripeApp from './PaymentGateway/PaymentScreen';
 
 
 
@@ -41,7 +41,7 @@ export default function App() {
       if (currentUser) {
 
         // User is signed in, fetch user details from Firestore
-  
+
         firestoreRetrieve(currentUser.uid)
         setUser(currentUser);
         setUserID(currentUser.uid)
@@ -52,7 +52,7 @@ export default function App() {
         // User is signed out, reset state
         setUser(null);
         setUserID(null);
-      
+
 
       }
     });
@@ -61,7 +61,7 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  
+
   // Function to fetch user details from Firestore and update local state
   const firestoreRetrieve = (uid) => {
     if (!uid) {
@@ -76,6 +76,7 @@ export default function App() {
       if (doc.exists()) {
         const userDetails = doc.data().UserDetails || {};
         const paymentDetails = doc.data().Payment || {};
+        const favorites = doc.data().favorites || {};
 
         // Update userData state with the new data
         setUserData({
@@ -86,6 +87,7 @@ export default function App() {
           profile: userDetails.ProfileImage || "",
           subscription: paymentDetails.SubscriptionStatus || "",
           dailyLimit: paymentDetails.DailyLimit || "",
+          favorite: favorites || "",
         });
       } else {
         console.log("No such document!");
@@ -109,19 +111,26 @@ export default function App() {
     setCameraPictureCapture(null);
   };
 
-
+  console.log("pb ke",Publishable_key);
   return (
 
     <NavigationContainer>
 
-      {/* If user is signed in, provide user data through global context and render the main app stack */}
-      {auth.currentUser? (
+      {auth.currentUser ? (
+        <>
+ <GlobalContext.Provider value={{ userData, user, userId, CameraPictureCapture, setCameraPictureCapture, resetGlobalContext }}>
+          <StripeProvider
+            publishableKey={Publishable_key}
+            merchantIdentifier="merchant.com.{{YOUR_APP_NAME}}" // required for Apple Pay
 
-        
-        <GlobalContext.Provider value={{ userData, user, userId, CameraPictureCapture, setCameraPictureCapture, resetGlobalContext }}>
-         <DrawerNavigation />
-        </GlobalContext.Provider >
+          >
+            {/* <StripeApp /> */}
+          </StripeProvider>
+         
+            <DrawerNavigation />
+          </GlobalContext.Provider >
 
+        </>
       ) : (
 
         <Stack.Navigator>

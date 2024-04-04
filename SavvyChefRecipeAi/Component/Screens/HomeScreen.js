@@ -1,92 +1,99 @@
-import React, { useState, useEffect ,useContext} from 'react';
-import { Button, Image, View, ScrollView, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
-import GbStyle from "../../Global/Styles"
+import React, { useEffect, useState , useContext,useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { View, Text, ImageBackground, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome5';  
+import GbStyle from "../../Global/Styles";
 import ImageUpload from './UploadImage';
+import GlobalContext from './Navigation/GlobalContext';
 
-import GlobalContext from "./Navigation/GlobalContext";
 
-const Home = ({ navigation }) =>{
 
-  // const { userData, setCameraPictureCapture, CameraPictureCapture } = useContext(GlobalContext);
 
-  const [image, setImage] = useState(GbStyle.panfry);
-  const [modalVisible, setModalVisible] = useState(false);
 
-  // // Navigate to camera for picture capture
-  // function CameraCaptionNavigation() {
-  //   setModalVisible(false)
-  //   navigation.navigate('Camera');
-  // }
-  // const handleImageUpload = (url) => {
-  //   setCameraPictureCapture(url);
-  //   setModalVisible(false);
-  //   navigation.navigate('Image');
-  // };
 
+const HomeScreen = ({ navigation }) => {
+  const { userData, setCameraPictureCapture, CameraPictureCapture } = useContext(GlobalContext);
 
   return (
-    <View style={styles.MainContainer}>
-      <SafeAreaView style={{ flex: 1 }}>
+    <ImageBackground source={GbStyle.HomeBgImage} style={styles.MainContainer} blurRadius={4}>
+      <SafeAreaView style={{ flex: 1 }} >
+        <View style={styles.ContentContainer}>
         
-          <View style={styles.centeredView}>
-            <View style={{ height: "35%", width: "80%", marginLeft: 50, marginBottom: 20 }}>
-              <Image
-                source={image}
-                resizeMode="contain"
-                style={[
-                  styles.defaultImageStyle
-                ]}
-              />
-            </View>
-            <View style={{ width: "100%", flexDirection: "column", justifyContent: "center", alignItems: "center", marginTop: 0 }}>
-              <Text style={[GbStyle.mainTitle, { fontSize: 31, color: "#000000", textAlign: 'center', marginBottom: 10, }]}>Discover Recipes
-              </Text>
-              <Text style={[GbStyle.NormalText, { color: "#000000", textAlign: "justify", marginBottom: 20, width: "100%", lineHeight: 26 }]}>
-                Ready to find your next favorite recipe? Upload an image of a food item or ingredient,
-                and let us guide you to delicious recipes.
-              </Text>
-            </View>
 
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={[styles.button, { backgroundColor: '#EE7214' }]}
+              onPress={() => navigation.navigate('imageVision')}
+            >
+              <Icon name="robot" size={24} color="#FFF" />
+              <Text style={styles.buttonText}>Ask AI with Image</Text>
+            </TouchableOpacity>
 
-            <View style={styles.btnContainer}>
-              <TouchableOpacity style={GbStyle.solidButton}  onPress={() => navigation.navigate("edaman")}>
-                <Text style={GbStyle.ButtonColorAndFontSize}>Upload</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              style={[styles.button, { backgroundColor: '#EE7214' }]}
+              onPress={() => navigation.navigate('Edaman')}
+            >
+              <Icon name="search" size={24} color="#FFF" />
+              <Text style={styles.buttonText}>Search by Name</Text>
+            </TouchableOpacity>
           </View>
-          {/* <ImageUpload isVisible={modalVisible} onClose={() => setModalVisible(false)} onUpload={handleImageUpload} onCameraCapture={CameraCaptionNavigation} /> */}
+        </View>
+
 
       </SafeAreaView>
-    </View>
+    </ImageBackground>
+
   );
-}
+};
 
 const styles = StyleSheet.create({
   MainContainer: {
     flex: 1,
-    justifyContent: "flex-start",
+    backgroundColor: '#fff',
+  },
+
+  ContentContainer: {
+    flex: 1,
+    justifyContent: 'center',
     padding: 20,
-
-  }, centeredView: {
-    flexGrow:1,
-    width: "100%",
-    height:"auto",
-  
-    
+   
   },
+  description: {
+    textAlign: 'center',
+    fontSize: 19,
+    color: '#fff',
+    paddingHorizontal: 10,
+    marginBottom: 30,
+    lineHeight: 26,
+    fontWeight: "700"
 
-  defaultImageStyle: {
-    height: "100%",
-    width: "100%",
-    padding: 10
   },
-  btnContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 40
+  buttonContainer: {
+    flexDirection: 'column',
+    justifyContent: 'center',
+    width: '100%',
+    padding: 50,
+    paddingTop: 5
   },
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    borderRadius: 30,
+    marginBottom: 20,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  buttonText: {
+    color: '#FFF',
+    fontSize: 16,
+    marginLeft: 10,
+  },
+});
 
-
-})
-
-export default Home;
+export default HomeScreen;

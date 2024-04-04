@@ -48,15 +48,15 @@ const EditProfile = ({ navigation }) => {
 
 
   // Effect hook for handling camera picture capture updates
-  // useEffect(() => {
-  //   if (CameraPictureCapture) {
-  //     setProfile(CameraPictureCapture);
-  //     setModalVisible(false);
-  //     setCameraPictureCapture(null)
-  //   }
+  useEffect(() => {
+    if (CameraPictureCapture) {
+      setProfile(CameraPictureCapture);
+      setModalVisible(false);
+      setCameraPictureCapture(null)
+    }
 
-  //   console.log(CameraPictureCapture);
-  // }, [CameraPictureCapture]);
+    console.log(CameraPictureCapture);
+  }, [CameraPictureCapture]);
 
   useFocusEffect(
     useCallback(() => {
@@ -181,12 +181,10 @@ const EditProfile = ({ navigation }) => {
 
   // Navigate to camera for picture capture
   function CameraCaptionNavigation() {
-    setModalVisible(false)
+   
     navigation.navigate('Camera');
+    setModalVisible(false)
   }
-
-
-
 
 
   return (
@@ -206,7 +204,7 @@ const EditProfile = ({ navigation }) => {
 
                   <View style={{ marginTop: 10 }}>
                     {uploadProgress > 0 && (
-                      <Text>Update Complete: {uploadProgress.toFixed(0)}%</Text>
+                      <Text>Update Completing:  {uploadProgress.toFixed(0)}%</Text>
                     )}
                   </View>
                   <View style={{ marginTop: 20 }}>
@@ -373,6 +371,7 @@ const styles = StyleSheet.create({
   },
 
   ProfileView: {
+    
     width: "100%",
     height: "100%",
     borderWidth: 2,

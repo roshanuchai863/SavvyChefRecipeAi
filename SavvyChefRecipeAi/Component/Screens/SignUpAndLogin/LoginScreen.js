@@ -1,55 +1,36 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
-  Text,
-  StyleSheet,
-  View,
-  ScrollView,
-  TouchableOpacity,
-  ImageBackground,
-  KeyboardAvoidingView,
-  SafeAreaView,
-  TextInput,
-  Alert,
-  Platform,
+  Alert, ImageBackground, KeyboardAvoidingView, SafeAreaView,
+  ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Platform
 } from 'react-native';
 import { AntDesign, Ionicons } from '@expo/vector-icons';
-import { signInWithEmailAndPassword ,sendEmailVerification } from 'firebase/auth';
-import { auth, db } from '../../../Firebase/Config';
-import GbStyle from '../../../Global/Styles';
 import { useNavigation } from '@react-navigation/native';
+import { signInWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { getDoc, setDoc, doc } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { auth, db } from '../../../Firebase/Config';
+import GbStyle from '../../../Global/Styles';
 
-{/* <LoginScreen email={email} lastName={lastName} phone={phone}/> */}
-
-const LoginScreen = ( ) => {
-
-const navigation = useNavigation();
-
-
+const LoginScreen = () => {
+  const navigation = useNavigation();
   const [email, setEmail] = useState('roshancreative863@gmail.com');
   const [password, setPassword] = useState('Roshanmalla24@');
   const [secureText, setSecureText] = useState(true);
   const [passwordVisible, setPasswordVisible] = useState('eye-off-outline');
+  const [alertVisible, setAlertVisible] = useState(false);
 
-     // Function to toggle the visibility of the password input field
-
+  // Toggle visibility of password
   const togglePasswordVisibility = () => {
     if (passwordVisible === 'eye-off-outline' && password.length === 0) {
       Alert.alert('Warning!!', 'Your password field is empty');
-      setPasswordVisible('eye-off-outline');
-    } else if (passwordVisible === 'eye-off-outline') {
-      setPasswordVisible('eye-outline');
-      setSecureText(false);
     } else {
-      setSecureText(true);
-      setPasswordVisible('eye-off-outline');
+      setPasswordVisible(prevState => prevState === 'eye-off-outline' ? 'eye-outline' : 'eye-off-outline');
+      setSecureText(!secureText);
     }
   };
 
-  // Validates input fields before attempting to log in
+  // Validate email and password fields
   const validation = () => {
-    // Check for empty fields and alert the user accordingly
     if (email.length === 0 && password.length === 0) {
       Alert.alert('Warning!!', 'Your email and password fields are empty');
       return false;
@@ -63,96 +44,100 @@ const navigation = useNavigation();
     return true;
   };
 
-  // // Handles the login process
-  // const handleLogin = async () => {
-  //   // Stops the login process if validation fails
-  //   if (!validation()) return;
-
-  //   try {
-  //     // Attempts to sign in the user with Firebase authentication
-  //     await signInWithEmailAndPassword(auth, email, password);
-
-
-  //     // Navigates to the main app screen upon successful login
-  //         } catch (error) {
-  //     // Logs and alerts the user of any login errors
-
-  //     console.error('Login failed', error);
-  //     Alert.alert('Login Failed', error.message);
-  //   }
-  // };
+  // Handle login process
   const handleLogin = async () => {
     if (!validation()) return;
 
     try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
 
+      if (!user.emailVerified) {
+        Alert.alert(
+          "Email Not Verified",
+          "Please verify your email to proceed. Check your inbox for the verification email.",
+          [
+            {
+              text: "Resend Verification Email",
+              onPress: async () => {
+                try {
+                  await sendEmailVerification(user);
+                  Alert.alert("Verification Email Sent", "Check your email to verify your account.");
+                } catch (error) {
+                  console.error("Error sending verification email", error);
+                  Alert.alert("Error", "Failed to send verification email. Please try again later.");
+                }
+              }
+            },
+            { text: "OK" }
+          ]
+        );
+        await auth.signOut();
+        navigation.navigate('Login');
+      } else {
+        const userDocRef = doc(db, 'Personal Details', user.uid);
+        const userDocSnap = await getDoc(userDocRef);
 
-        if (!user.emailVerified) {
-            // User's email is not verified
-            Alert.alert(
-                "Email Not Verified",
-                "Please verify your email to proceed. Check your inbox for the verification email.",
-                [
-                    {
-                        text: "Resend Verification Email",
-                        onPress: async () => {
-                            try {
-                                await sendEmailVerification(user);
-                                Alert.alert("Verification Email Sent", "Check your email to verify your account.");
-                            } catch (error) {
-                                console.error("Error sending verification email", error);
-                                Alert.alert("Error", "Failed to send verification email. Please try again later.");
-                            }
-                        }
-                    },
-                    { text: "OK" }
-                ]
-            );
-            await auth.signOut(); // Ensure the user is logged out if not verified
-            navigation.navigate('Login'); 
-        } 
-        
-          else {
-            // Check if the user document already has Payment and UserDetails
-            const userDocRef = doc(db, 'Personal Details', user.uid);
-            const userDocSnap = await getDoc(userDocRef);
-      
-            // Only set Payment and UserDetails if they don't exist
-            if (!userDocSnap.exists() || !userDocSnap.data().Payment || !userDocSnap.data().UserDetails) {
-              const userData = {
-                Payment: {
-                  SubscriptionStatus: 'Free',
-                  SubscriptionDate: '',
-                  DailyLimit: 20,
-                },
-                UserDetails: {
-                  Email: email,
-                  FirstName: await AsyncStorage.getItem("firstName"),
-                  LastName: await AsyncStorage.getItem("lastName"),
-                  Phone: await AsyncStorage.getItem("phone"),
-                  ProfileImage: ""
-                },
-              };
-      
-              await setDoc(userDocRef, userData, { merge: true });
-            }
-  
-      await AsyncStorage.removeItem("firstName")
-      await AsyncStorage.removeItem("lastName")
-      await AsyncStorage.removeItem("phone")
-     
+        if (!userDocSnap.exists() || !userDocSnap.data().Payment || !userDocSnap.data().UserDetails) {
+          const userData = {
+            Payment: {
+              SubscriptionStatus: 'Free',
+              SubscriptionDate: '',
+              DailyLimit: 20,
+            },
+            UserDetails: {
+              Email: email,
+              FirstName: await AsyncStorage.getItem("firstName"),
+              LastName: await AsyncStorage.getItem("lastName"),
+              Phone: await AsyncStorage.getItem("phone"),
+              ProfileImage: ""
+            },
+          };
+
+          await setDoc(userDocRef, userData, { merge: true });
         }
+
+        await AsyncStorage.removeItem("firstName");
+        await AsyncStorage.removeItem("lastName");
+        await AsyncStorage.removeItem("phone");
+      }
     } catch (error) {
+      if (!alertVisible) {
+        setAlertVisible(true);
         console.error('Login failed', error);
-        Alert.alert('Login Failed', error.message);
+
+        if (error.message.includes("auth/invalid-credential")) {
+          Alert.alert(
+            'Login Failed',
+            "Email and Password don't match",
+            [{ text: 'OK', onPress: () => setAlertVisible(false) }]
+          );
+        } else if (error.message.includes("auth/too-many-requests")) {
+          Alert.alert(
+            'Warning: Too Many Attempts!',
+            'Access to this account has been temporarily disabled due to many failed login attempts. You can immediately restore it by resetting your password or you can try again later',
+            [
+              {
+                text: 'Reset Password',
+                onPress: () => {
+                  navigation.navigate("ResetPassword");
+                  setAlertVisible(false);
+                },
+              },
+              {
+                text: 'Cancel',
+                onPress: () => setAlertVisible(false),
+              },
+            ]
+          );
+        }
+
+        setAlertVisible(false);
+      }
     }
-};
+  };
 
-
-
-
+  // Render the login screen UI
   return (
     <ImageBackground source={GbStyle.LogInScreenBg} resizeMode='cover' blurRadius={3} style={styles.backgroundImage}>
       <SafeAreaView>
@@ -175,9 +160,9 @@ const navigation = useNavigation();
                   <AntDesign name="mail" size={28} color="white" />
                   <TextInput
                     value={email}
+                    onChangeText={setEmail}
                     placeholder="Ex: abc@example.com"
                     placeholderTextColor="#ffffff"
-                    onChangeText={setEmail}
                     style={[GbStyle.inputText, { width: "90%", marginLeft: 10 }]}
                   />
                 </View>
@@ -187,10 +172,10 @@ const navigation = useNavigation();
                   <AntDesign name="lock" size={28} color="white" />
                   <TextInput
                     value={password}
-                    placeholder="........."
-                    placeholderTextColor="#ffffff"
                     onChangeText={setPassword}
                     secureTextEntry={secureText}
+                    placeholder="........."
+                    placeholderTextColor="#ffffff"
                     style={[GbStyle.inputText, { width: "90%", marginLeft: 10 }]}
                   />
                   <TouchableOpacity onPress={togglePasswordVisibility}>
@@ -226,6 +211,7 @@ const navigation = useNavigation();
   );
 };
 
+// Styles for the login screen
 const styles = StyleSheet.create({
   backgroundImage: {
     flex: 1,
@@ -243,8 +229,8 @@ const styles = StyleSheet.create({
   },
   inputFieldcontainer: {
     flexDirection: "row",
-    justifyContent: "center",
     alignItems: "center",
+    justifyContent: "center",
     width: "100%",
     borderColor: GbStyle.colors.buttonColors.borderColor,
     borderWidth: 1,

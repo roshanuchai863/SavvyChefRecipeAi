@@ -1,16 +1,11 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Button } from 'react-native';
 
 
 
-import ProfileScreen from '../User/ProfileScreen';
-import EditProfile from '../User/EditProfile';
 import ImageUpload from '../UploadImage';
 import CameraCapture from '../Camera/CameraCapture';
 import TabNavigator from './TabNavigator';
-import RecipeDetails from '../AI/RecipeDetails ';
-
-
+import PaymentScreen from '../../../PaymentGateway/PaymentScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -24,7 +19,8 @@ function SettingStackScreen() {
     >
       <Stack.Screen name="Main" component={TabNavigator} />
       <Stack.Screen name="imageUpload" component={ImageUpload} options={{ headerShown: false }} />
-      <Stack.Screen name="Camera" component={CameraCapture} options={{ headerShown: false }} />
+      <Stack.Screen name="Camera" component={CameraCapture}  />
+     
 
     </Stack.Navigator>
   );

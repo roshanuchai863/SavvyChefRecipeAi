@@ -25,7 +25,7 @@ function ImageUpload({ isVisible, onClose, onUpload , onCameraCapture}) {
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.All,
             allowsEditing: true,
-            aspect: [4, 3],
+            aspect: [1, 1],
             quality: 1,
         });
 
@@ -33,22 +33,16 @@ function ImageUpload({ isVisible, onClose, onUpload , onCameraCapture}) {
         if (!result.canceled) {
 
             setImage(result.assets[0].uri);
-
-            console.log("Image Url..", image)
             setIsDefaultImage(false);
-
             onUpload(result.assets[0].uri);
-
-            console.warn("setdefua", isDefaultImage)
         }
 
     };
-    useEffect(() => {
+ 
 
-        console.log("Current isDefaultImage state: ", isDefaultImage);
-    }, [isDefaultImage]);
-
-   
+    const reset = ()=>{
+setImage(GbStyle.UploadFileIcon);
+    }
 
 
     return (
@@ -102,7 +96,7 @@ function ImageUpload({ isVisible, onClose, onUpload , onCameraCapture}) {
                                 </View>
                             </TouchableOpacity>
 
-                            <TouchableOpacity onPress={pickImage}>
+                            <TouchableOpacity onPress={reset}>
                                 <View style={styles.UploadInerIcons}>
                                     <View style={{ borderWidth: 2, width: 90, height: 90, justifyContent: 'center', alignItems: "center", borderRadius: 50, borderColor: "#EE7214" }}>
                                         <Image source={GbStyle.DeleteBinIcon} resizeMode='contain' style={styles.ImageUploadIcon} />

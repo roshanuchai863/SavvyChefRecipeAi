@@ -23,12 +23,18 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const SignUpScreen = ({ navigation }) => {
 
   // State hooks for managing user inputs and UI state
-  const [email, setEmail] = useState('roshancreative863@gmail.com');
-  const [password, setPassword] = useState('Roshanmalla24@');
-  const [confirmPassword, setConfirmPassword] = useState('Roshanmalla24@');
-  const [firstName, setFirstName] = useState('Roshan');
-  const [lastName, setLastName] = useState('Uchai');
-  const [phone, setPhone] = useState('0410927767');
+  // const [email, setEmail] = useState('roshancreative863@gmail.com');
+  // const [password, setPassword] = useState('Roshanmalla24@');
+  // const [confirmPassword, setConfirmPassword] = useState('Roshanmalla24@');
+  // const [firstName, setFirstName] = useState('Roshan');
+  // const [lastName, setLastName] = useState('Uchai');
+  // const [phone, setPhone] = useState('0410927767');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [phone, setPhone] = useState('');
 
   // Manage password visibility toggle
   const [secureText, setSecureText] = useState(true);
@@ -68,8 +74,10 @@ const SignUpScreen = ({ navigation }) => {
     }
 
     // Phone validation (basic check for 10 digits; adjust as needed)
-    if (!/^\d{10}$/.test(phone)) {
-      Alert.alert('Invalid Input', 'Phone number must be 10 digits.');
+    const phonevalidation = /^(\+?\(61\)|\(\+?61\)|\+?61|\(0[1-9]\)|0[1-9])?( ?-?[0-9]){7,9}$/gm;
+
+    if (!phonevalidation.test(phone)) {
+      Alert.alert('Invalid Input', 'Phone number not correct');
       return false;
     }
 
@@ -137,7 +145,7 @@ const SignUpScreen = ({ navigation }) => {
                   <AntDesign name='arrowleft' size={28} color='white' />
                 </TouchableOpacity>
 
-                <Text style={GbStyle.mainTitle}>Register</Text>
+                <Text style={GbStyle.mainTitle}>Sign Up</Text>
                 <Text style={[GbStyle.NormalText, { textAlign: 'left', width: '100%' }]}>
                   Create an account to access thousands of Food Recipes
                 </Text>
