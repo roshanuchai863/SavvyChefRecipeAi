@@ -44,8 +44,8 @@ const ImageVision = () => {
 
       // replace your google cloud vision api key with your actual API key
       const apiKey = GoogleVision_API_KEY;
-      // const apiURL = `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`;
-      const apiURL = `POST https://vision.googleapis.com/v1/images:annotate=${apiKey}`;
+      const apiURL = `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`;
+      // const apiURL = `POST https://vision.googleapis.com/v1/images:annotate=${apiKey}`;
 
       // read the image file from local URI and convert it to base64
       const base64ImageData = await FileSystem.readAsStringAsync(imageUri, {

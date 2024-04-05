@@ -27,8 +27,8 @@ function DrawerNavigation() {
 
     function rightHeader() {
         return <View style={styles.profileContainer}>
-            <FontAwesome5 name="coins" size={29} color="#000" style={styles.coinIcon} />
-            <Text style={styles.userDailyLimit}>{userData.dailyLimit}</Text>
+            <FontAwesome5 name="coins" size={29} color="#EE7214" style={styles.coinIcon} />
+            <Text style={[styles.userDailyLimit,{color:"#EE7214" }]}>{userData.dailyLimit}</Text>
         </View>
     }
 
@@ -50,7 +50,7 @@ function DrawerNavigation() {
             headerRight: () => (
 
                 <View style={styles.profileContainer}>
-                    <FontAwesome5 name="coins" size={29} color="#000" style={styles.coinIcon} />
+                    <FontAwesome5 name="coins" size={29} color="#fff" style={styles.coinIcon} />
                     <Text style={styles.userDailyLimit}>{userData.dailyLimit}</Text>
                 </View>
 
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     },
     userDailyLimit: {
         fontSize: 20,
-        color: '#000',
+        color: '#fff',
         fontWeight: "bold",
         paddingRight: 15
     },

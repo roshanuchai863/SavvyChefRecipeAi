@@ -17,8 +17,10 @@ app.get('/', (req, res) => {
 
 app.post('/payment-sheet', async (req, res) => {
   try {
-    const { amount } = req.body;
-    const customer = await stripe.customers.create();
+    const { amount , email} = req.body;
+    const customer = await stripe.customers.create({
+      email:email
+    });
     const ephemeralKey = await stripe.ephemeralKeys.create(
       { customer: customer.id },
       { apiVersion: '2023-10-16' }
@@ -42,7 +44,9 @@ app.post('/payment-sheet', async (req, res) => {
     } else if (error.type === 'StripeInvalidRequestError') {
       // Invalid parameters were supplied to Stripe's API
       res.status(400).json({ error: error.message });
-    } else if (error.type === 'StripeAPIError') {
+    } 
+   
+    else if (error.type === 'StripeAPIError') {
       // An error occurred internally with Stripe's API
       res.status(500).json({ error: error.message });
     } else {

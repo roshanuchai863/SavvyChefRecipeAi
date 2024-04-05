@@ -23,18 +23,18 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const SignUpScreen = ({ navigation }) => {
 
   // State hooks for managing user inputs and UI state
-  // const [email, setEmail] = useState('roshancreative863@gmail.com');
-  // const [password, setPassword] = useState('Roshanmalla24@');
-  // const [confirmPassword, setConfirmPassword] = useState('Roshanmalla24@');
-  // const [firstName, setFirstName] = useState('Roshan');
-  // const [lastName, setLastName] = useState('Uchai');
-  // const [phone, setPhone] = useState('0410927767');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('roshancreative863@gmail.com');
+  const [password, setPassword] = useState('Roshanmalla24@');
+  const [confirmPassword, setConfirmPassword] = useState('Roshanmalla24@');
+  const [firstName, setFirstName] = useState('Roshan');
+  const [lastName, setLastName] = useState('Uchai');
+  const [phone, setPhone] = useState('0410927767');
+  // const [email, setEmail] = useState('');
+  // const [password, setPassword] = useState('');
+  // const [confirmPassword, setConfirmPassword] = useState('');
+  // const [firstName, setFirstName] = useState('');
+  // const [lastName, setLastName] = useState('');
+  // const [phone, setPhone] = useState('');
 
   // Manage password visibility toggle
   const [secureText, setSecureText] = useState(true);

@@ -1,18 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useContext } from 'react';
 import { View, TextInput, TouchableOpacity, FlatList, Text,Alert, Image, ActivityIndicator ,StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { EdamanAPP_ID, EdamanAPP_KEY } from '@env';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import GlobalContext from './../../Screens/Navigation/GlobalContext';
 
 const Edaman = () => {
     const navigation = useNavigation();
+    const { userData, userId } = useContext(GlobalContext);
 
 
     const [recipes, setRecipes] = useState([]);
     const [search, setSearch] = useState('');
     const [query, setQuery] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [CurrentCoin , SetCurrentCoint] = useState(userData.dailyLimit);
 
     const resetLocalStorage = async () => {
         try {
@@ -34,6 +37,18 @@ const Edaman = () => {
     //     setRecipes(data.hits);
     // };
 
+
+
+    const CheckCoins = async() =>{
+     
+        const updatedDailyLimit = CurrentCoin - 2;
+        const updateUser = {
+            "Payment.DailyLimit": updatedDailyLimit,
+        };
+
+        const userDocRef = doc(db, "Personal Details", userId);
+        await updateDoc(userDocRef, updateUser);
+    }
 
     const getRecipes = async () => {
         setIsLoading(true);

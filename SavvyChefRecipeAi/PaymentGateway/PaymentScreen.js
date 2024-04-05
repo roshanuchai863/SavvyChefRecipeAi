@@ -4,7 +4,7 @@ import { SafeAreaView, StyleSheet, View, Image, Text, ImageBackground, ActivityI
 import creatPaymentIntent from './apis';
 import ButtonComp from './ButtonCamp';
 import GlobalContext from './../Component/Screens//Navigation/GlobalContext';
-import { doc, updateDoc, getDoc, setDoc, collection } from "firebase/firestore";
+import { doc, updateDoc, getDoc, setDoc, addDoc ,Collection,arrayUnion } from "firebase/firestore";
 import { db } from "./../Firebase/Config";
 import GbStyle from "./../Global/Styles";
 import { TouchableOpacity } from 'react-native-gesture-handler';
@@ -32,6 +32,7 @@ const PaymentScreen = () => {
         setShowModal(true);
         let apiData = {
             amount: 2000,
+            email: userData.email
         }
 
         try {
@@ -46,15 +47,17 @@ const PaymentScreen = () => {
 
                     const paymentDetails = {
                         paymentIntentId: confirmPaymentIntent.paymentIntent.id,
-                        amount: confirmPaymentIntent.paymentIntent.amount,
+                        amount: confirmPaymentIntent.paymentIntent.amount/100,
                         currency: confirmPaymentIntent.paymentIntent.currency,
-                        paymentMethodId: confirmPaymentIntent.paymentIntent.paymentMethod,
+                        dateAndTime: new Date(confirmPaymentIntent.paymentIntent.created * 1),
+                        last4digit: confirmPaymentIntent.paymentIntent.paymentMethod.Card.last4,
                         status: confirmPaymentIntent.paymentIntent.status,
+                        PaymentEmail: userData.email
 
                     };
-                    console.log("roshshan paymentdetail heere", paymentDetails)
+                   
                     await updateData(paymentDetails);
-
+                 
                     alert("Payment successful!");
                 } else {
                     const paymentError = confirmPaymentIntent.error?.message || "Unknown error occurred during payment.";
@@ -82,113 +85,23 @@ const PaymentScreen = () => {
             const updatedDailyLimit = currentDailyLimit + 60;
             const updateUser = {
                 "Payment.DailyLimit": updatedDailyLimit,
+                
             };
+
+           
 
             const userDocRef = doc(db, "Personal Details", userId);
             await updateDoc(userDocRef, updateUser);
-
-            // Store payment details in the Payment collection
-            const paymentDocRef = collection(db, "Personal Details", userId, "Payment");
-            const paymentDocSnapshot = await getDoc(paymentDocRef);
-
-            if (paymentDocSnapshot.exists()) {
-                // If the document already exists, update it
-                await updateDoc(paymentDocRef, paymentDetails);
-                console.log("Payment details updated successfully:", paymentDetails);
-            } else {
-                // If the document doesn't exist, create it
-                await setDoc(paymentDocRef, paymentDetails);
-                console.log("Payment details created successfully:", paymentDetails);
-            }
-
-
-
-            alert('Profile updated successfully.')
+            await updateDoc(userDocRef, { paymentDetails: arrayUnion(paymentDetails) });
+            
         } catch (error) {
             console.log("Error updating data:", error);
         }
     };
 
 
-    // const storePaymentDetails = async (paymentDetails) => {
-    //     try {
-    //         const paymentDocRef = doc(db, "PaymentRecords", userId, paymentDetails.paymentIntentId);
-    //         const paymentDocSnapshot = await getDoc(paymentDocRef);
-
-    //         if (paymentDocSnapshot.exists()) {
-    //             // If the document already exists, update it
-    //             await updateDoc(paymentDocRef, paymentDetails);
-    //             console.log("Payment details updated successfully:", paymentDetails);
-    //         } else {
-    //             // If the document doesn't exist, create it
-    //             await setDoc(paymentDocRef, paymentDetails);
-    //             console.log("Payment details created successfully:", paymentDetails);
-    //         }
-
-    //         // Update the daily limit in the user's document
-    //         const userDocRef = doc(db, "Users", userId);
-    //         const userDocSnapshot = await getDoc(userDocRef);
-
-    //         if (userDocSnapshot.exists()) {
-    //             const currentDailyLimit = userDocSnapshot.data().Payment.DailyLimit;
-    //             const updatedDailyLimit = currentDailyLimit + 60;
-
-    //             const updateUser = {
-    //                 "Payment.DailyLimit": updatedDailyLimit,
-    //             };
-
-    //             await updateDoc(userDocRef, updateUser);
-    //             console.log("User daily limit updated successfully:", updatedDailyLimit);
-    //         } else {
-    //             console.log("User document not found.");
-    //         }
-
-    //         alert('Profile updated successfully.');
-    //     } catch (error) {
-    //         console.log("Error storing payment details:", error);
-    //     }
-    // };
-
-    const storePaymentDetails = async (paymentDetails) => {
-        try {
-            const paymentDocRef = doc(db, "PaymentRecords", userId, paymentDetails.paymentIntentId);
-            const paymentDocSnapshot = await getDoc(paymentDocRef);
-
-            // Check if the payment document exists, create it if not
-            if (!paymentDocSnapshot.exists()) {
-                await setDoc(paymentDocRef, {});
-                console.log("Payment document created successfully.");
-            }
-
-            // Update the daily limit in the user's document
-            const userDocRef = doc(db, "Users", userId);
-            const userDocSnapshot = await getDoc(userDocRef);
-
-            // Check if the user document exists, create it if not
-            if (!userDocSnapshot.exists()) {
-                await setDoc(userDocRef, { Payment: { DailyLimit: 0 } });
-                console.log("User document created successfully.");
-            }
-
-            // Update the payment details
-            await updateDoc(paymentDocRef, paymentDetails);
-            console.log("Payment details updated successfully:", paymentDetails);
-
-            // Update the user's daily limit
-            const currentDailyLimit = userDocSnapshot.data()?.Payment?.DailyLimit || 0;
-            const updatedDailyLimit = currentDailyLimit + 60;
-            const updateUser = {
-                Payment: { DailyLimit: updatedDailyLimit },
-            };
-
-            await updateDoc(userDocRef, updateUser);
-            console.log("User daily limit updated successfully:", updatedDailyLimit);
-
-            alert('Profile updated successfully.');
-        } catch (error) {
-            console.log("Error storing payment details:", error);
-        }
-    };
+   
+    
 
 
     return (
