@@ -86,7 +86,7 @@ export default function App() {
           contact: userDetails.Phone || "",
           profile: userDetails.ProfileImage || "",
           subscription: paymentDetails.SubscriptionStatus || "",
-          dailyLimit: paymentDetails.DailyLimit || "",
+          dailyLimit: paymentDetails.DailyLimit || 0,
           favorite: favorites || "",
         });
       } else {

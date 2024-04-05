@@ -7,7 +7,6 @@ import GlobalContext from './../Component/Screens//Navigation/GlobalContext';
 import { doc, updateDoc, getDoc, setDoc, addDoc ,Collection,arrayUnion } from "firebase/firestore";
 import { db } from "./../Firebase/Config";
 import GbStyle from "./../Global/Styles";
-import { TouchableOpacity } from 'react-native-gesture-handler';
 
 const PaymentScreen = () => {
     const [cardInfo, setCardInfo] = useState(null)

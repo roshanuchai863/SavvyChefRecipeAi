@@ -1,10 +1,12 @@
-import React, { useState, useEffect,useContext } from 'react';
-import { View, TextInput, TouchableOpacity, FlatList, Text,Alert, Image, ActivityIndicator ,StyleSheet } from 'react-native';
+import React, { useState, useEffect, useContext } from 'react';
+import { View, TextInput, TouchableOpacity, FlatList, Text, Alert, Image, ActivityIndicator, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { EdamanAPP_ID, EdamanAPP_KEY } from '@env';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import GlobalContext from './../../Screens/Navigation/GlobalContext';
+import { updateDoc, doc } from 'firebase/firestore';
+import { db } from '../../../Firebase/Config';
 
 const Edaman = () => {
     const navigation = useNavigation();
@@ -15,7 +17,12 @@ const Edaman = () => {
     const [search, setSearch] = useState('');
     const [query, setQuery] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const [CurrentCoin , SetCurrentCoint] = useState(userData.dailyLimit);
+    const [CurrentCoin, SetCurrentCoin] = useState();
+
+
+    useEffect(() => {
+        SetCurrentCoin(userData.dailyLimit);
+    }, [userData.dailyLimit])
 
     const resetLocalStorage = async () => {
         try {
@@ -37,44 +44,57 @@ const Edaman = () => {
     //     setRecipes(data.hits);
     // };
 
+    useEffect(() => {
+        SetCurrentCoin(userData.dailyLimit);
+    }, [userData.dailyLimit])
 
-
-    const CheckCoins = async() =>{
-     
-        const updatedDailyLimit = CurrentCoin - 2;
-        const updateUser = {
-            "Payment.DailyLimit": updatedDailyLimit,
-        };
-
-        const userDocRef = doc(db, "Personal Details", userId);
-        await updateDoc(userDocRef, updateUser);
-    }
 
     const getRecipes = async () => {
+
         setIsLoading(true);
         const cacheKey = `edamam-${query}`;
         console.log(`Fetching recipes for query: ${query}`);
         try {
-            const cachedData = await AsyncStorage.getItem(cacheKey);
-            if (cachedData) {
-                console.log("Using cached data");
-                setRecipes(JSON.parse(cachedData));
-                console.log("cache data:" , JSON.parse(cachedData))
-            } else {
-                console.log("Fetching data from API");
-                const response = await fetch(`https://api.edamam.com/search?q=${query}&app_id=${EdamanAPP_ID}&app_key=${EdamanAPP_KEY}&from=7&to=10&calories=591-722&health=alcohol-free`);
-                const data = await response.json();
-                if (data && data.hits && data.hits.length > 0) {
-                    await AsyncStorage.setItem(cacheKey, JSON.stringify(data.hits));
-                    setRecipes(data.hits);
-                    console.log("fetching API data", data.hits);
-                } else {
-                    console.log("No data found in API response");
-                    setRecipes([]); // Clear the recipes if no data is found
-                    Alert.alert('No Results', `No recipes found for "${query}"`);
-
-                }
+            if (CurrentCoin == 0) {
+                Alert.alert("Sorry, You're Running Out of Coins.", "Please Purchase More Coins.");
+                return;
             }
+            else {
+                const updatedDailyLimit = CurrentCoin - 3;
+                const updateUser = {
+                    "Payment.DailyLimit": updatedDailyLimit,
+                };
+    
+                const userDocRef = doc(db, "Personal Details", userId);
+                await updateDoc(userDocRef, updateUser);
+
+
+
+
+                const cachedData = await AsyncStorage.getItem(cacheKey);
+                if (cachedData) {
+                    console.log("Using cached data");
+                    setRecipes(JSON.parse(cachedData));
+                    console.log("cache data:", JSON.parse(cachedData))
+                } else {
+                    console.log("Fetching data from API");
+                    const response = await fetch(`https://api.edamam.com/search?q=${query}&app_id=${EdamanAPP_ID}&app_key=${EdamanAPP_KEY}&from=7&to=10&calories=591-722&health=alcohol-free`);
+                    const data = await response.json();
+                    if (data && data.hits && data.hits.length > 0) {
+                        await AsyncStorage.setItem(cacheKey, JSON.stringify(data.hits));
+                        setRecipes(data.hits);
+                        console.log("fetching API data", data.hits);
+                    } else {
+                        console.log("No data found in API response");
+                        setRecipes([]); // Clear the recipes if no data is found
+                        Alert.alert('No Results', `No recipes found for "${query}"`);
+
+                    }
+                  
+                }
+               
+                }
+            
         } catch (error) {
             console.error("Error fetching recipes:", error);
             setRecipes([]); // Clear the recipes on error
@@ -85,7 +105,7 @@ const Edaman = () => {
         }
     };
 
-    
+
 
     return (
         <View style={styles.app}>
@@ -107,45 +127,45 @@ const Edaman = () => {
             </View>
             {isLoading ? (
                 <>
-                <ActivityIndicator size="large" color="#EE7214" />
-                <Text style={{alignSelf:"center"}}>Loading....</Text>
+                    <ActivityIndicator size="large" color="#EE7214" />
+                    <Text style={{ alignSelf: "center" }}>Loading....</Text>
                 </>
             ) : (
-            <FlatList
-                data={recipes}
-                renderItem={({ item, index }) => (
-                    <TouchableOpacity onPress={() => navigation.navigate('RecipeDetails', { recipe: item.recipe })}>
-                        <View style={styles.recipeCard}>
-                            <Image source={{ uri: item.recipe.image }} style={styles.image} />
-                            <View style={styles.recipeInfo}>
-                                <Text style={styles.title} numberOfLines={1}>
-                                    {index + 1}. {item.recipe.label}
-                                </Text>
-                                {/* Only render strings or elements within Text components */}
-                                <Text style={styles.ingredients}>
-                                    <Text style={{ fontWeight: "500" }}>Meal Type: </Text>
-                                    {item.recipe.mealType.join(", ")}
-                                </Text>
-                                <Text style={styles.ingredients} numberOfLines={3}>
-                                    <Text style={{ fontWeight: "500" }}>Ingredients: </Text>
-                                    {item.recipe.ingredientLines.join(", ")}
-                                </Text>
+                <FlatList
+                    data={recipes}
+                    renderItem={({ item, index }) => (
+                        <TouchableOpacity onPress={() => navigation.navigate('RecipeDetails', { recipe: item.recipe })}>
+                            <View style={styles.recipeCard}>
+                                <Image source={{ uri: item.recipe.image }} style={styles.image} />
+                                <View style={styles.recipeInfo}>
+                                    <Text style={styles.title} numberOfLines={1}>
+                                        {index + 1}. {item.recipe.label}
+                                    </Text>
+                                    {/* Only render strings or elements within Text components */}
+                                    <Text style={styles.ingredients}>
+                                        <Text style={{ fontWeight: "500" }}>Meal Type: </Text>
+                                        {item.recipe.mealType.join(", ")}
+                                    </Text>
+                                    <Text style={styles.ingredients} numberOfLines={3}>
+                                        <Text style={{ fontWeight: "500" }}>Ingredients: </Text>
+                                        {item.recipe.ingredientLines.join(", ")}
+                                    </Text>
+                                </View>
                             </View>
-                        </View>
-                    
 
-                    </TouchableOpacity>
-                )}
-                keyExtractor={(item, index) => `${index}`}
-            />
+
+                        </TouchableOpacity>
+                    )}
+                    keyExtractor={(item, index) => `${index}`}
+                />
             )}
-            </View>
-        );
-    };
+        </View>
+    );
+};
 
 const styles = StyleSheet.create({
 
-   
+
     app: {
         flex: 1,
         backgroundColor: '#FAFAFA',
@@ -240,5 +260,4 @@ const styles = StyleSheet.create({
 });
 
 export default Edaman;
-
 
