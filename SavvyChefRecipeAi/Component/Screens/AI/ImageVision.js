@@ -1,18 +1,22 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, Text, Image, TouchableOpacity, ScrollView, Modal,ActivityIndicator } from 'react-native';
+
+
+
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, View, Text, Image, TouchableOpacity, ScrollView, Modal, ActivityIndicator } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import axios from 'axios';
 import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system';
-import { GoogleVision_API_KEY } from "@env"
-
-import { Secret_key, pk, } from '@env'
-
+import { Clarifai_API_KEY } from "@env"
+import Edaman from './Edaman';
+import { useNavigation } from '@react-navigation/native';
 
 const ImageVision = () => {
+  const navigation = useNavigation();
   const [imageUri, setImageUri] = useState(null);
   const [labels, setLabels] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [labelShowModal, SetlabelShowModal] = useState(false);
+
   const pickImage = async () => {
     try {
       let result = await ImagePicker.launchImageLibraryAsync({
@@ -22,8 +26,8 @@ const ImageVision = () => {
         quality: 1,
       });
 
-      if (!result.canceled) {
-        setImageUri(result.assets[0].uri);
+      if (!result.cancelled) {
+        setImageUri(result.uri);
       }
 
       console.log(result);
@@ -32,9 +36,7 @@ const ImageVision = () => {
     }
   };
 
-
   const analyzeImage = async () => {
-
     setShowModal(true);
     try {
       if (!imageUri) {
@@ -42,45 +44,64 @@ const ImageVision = () => {
         return;
       }
 
-      // replace your google cloud vision api key with your actual API key
-      const apiKey = GoogleVision_API_KEY;
-      const apiURL = `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`;
-      // const apiURL = `POST https://vision.googleapis.com/v1/images:annotate=${apiKey}`;
+      const apiKey = Clarifai_API_KEY;
+      const apiURL = 'https://api.clarifai.com/v2/models/aaa03c23b3724a16a56b629203edc62c/outputs';
 
-      // read the image file from local URI and convert it to base64
-      const base64ImageData = await FileSystem.readAsStringAsync(imageUri, {
-        encoding: FileSystem.EncodingType.Base64,
+      const base64ImageData = await fetch(imageUri);
+      const base64Image = await base64ImageData.blob();
+      const base64ImageString = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = reject;
+        reader.onload = () => resolve(reader.result);
+        reader.readAsDataURL(base64Image);
       });
 
       const requestData = {
-        requests: [
+        inputs: [
           {
-            image: {
-              content: base64ImageData,
+            data: {
+              image: {
+                base64: base64ImageString.split(',')[1],
+              },
             },
-            features: [{ type: 'LABEL_DETECTION', maxResults: 5 }],
           },
         ],
       };
 
-      const apiResponse = await axios.post(apiURL, requestData);
-      setLabels(apiResponse.data.responses[0].labelAnnotations);
-      console.log("google vision:", apiResponse.data.responses[0]);
+      const apiResponse = await axios.post(apiURL, requestData, {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+      });
 
+      const predictions = apiResponse.data.outputs[0].data.concepts;
+      let maxScore = 0;
+      let correctLabel = '';
+
+      predictions.forEach(prediction => {
+        if (prediction.value > maxScore) {
+          maxScore = prediction.value;
+          correctLabel = prediction.name;
+        }
+      });
+
+      setLabels([correctLabel]);
+
+
+      console.log('Correct Label:', correctLabel);
     } catch (error) {
       console.error('Error analyzing image: ', error);
       alert('Error analyzing image. Please try again later');
-    }
-    finally{
+    } finally {
       setShowModal(false);
+      SetlabelShowModal(true);
     }
-
   };
 
 
 
-  console.log("Publishable_keyOm", pk)
-  console.log("Publishable_keyOm", Secret_key)
+
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -107,15 +128,62 @@ const ImageVision = () => {
           <MaterialCommunityIcons name="magnify" size={24} color="#FFF" />
           <Text style={styles.buttonText}>Analyze Image</Text>
         </TouchableOpacity>
+
       </View>
 
-      <View style={styles.labelsContainer}>
-        {labels.map((label, index) => (
-          <Text key={index} style={styles.labelText}>
-            {label.description}
-          </Text>
-        ))}
-      </View>
+
+
+
+
+
+
+      <Modal
+        visible={labelShowModal}
+        animationType="fade"
+        transparent={true}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <View style={styles.labelsContainer}>
+              {labels.map((label, index) => (
+                <View>
+                  <Text key={index} style={styles.labelText}>
+                    The recognized ingredient is:
+                  </Text>
+                  <Text style={{ fontWeight: "bold", fontSize: 40, textAlign: "center" }}> {label}</Text>
+                </View>
+              ))}
+            </View>
+
+            {labels.length >= 1 ? (
+              <View style={styles.recipeSearchButton}>
+                <TouchableOpacity onPress={() => {
+                  SetlabelShowModal(false);
+                  navigation.navigate("Edaman" ,{
+                    label:labels
+                  });
+                }}
+                  style={styles.Modalbutton}>
+
+                  <MaterialCommunityIcons name="magnify" size={28} color="#FFF" />
+                  <Text style={styles.ModalbuttonText}>Search Recipe</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={() => { SetlabelShowModal(false) }} style={[styles.Modalbutton, { margin: 20 }]}>
+                  <MaterialCommunityIcons name="camera-retake-outline" size={28} color="#FFF" />
+                  <Text style={styles.ModalbuttonText}>Try Again</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <></>
+            )
+            }
+
+
+          </View>
+        </View>
+      </Modal>
+
 
 
       <Modal
@@ -190,26 +258,54 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   labelText: {
-    fontSize: 16,
+    fontSize: 20,
     marginVertical: 4,
-    color: '#333',
-  },modalContainer: {
+    color: '#000',
+    fontWeight: "bold"
+  },
+  modalContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-},
-modalContent: {
+  },
+  modalContent: {
     backgroundColor: '#fff',
     padding: 50,
     borderRadius: 10,
     alignItems: 'center',
-},
-modalText: {
+  },
+  modalText: {
     marginTop: 10,
     fontSize: 16,
     fontWeight: 'bold',
-},
+  },
+  recipeSearchButton: {
+    marginVertical: 40,
+    width: "100%",
+    alignSelf: "center",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 10
+
+  },
+  Modalbutton: {
+    backgroundColor: '#EE7214',
+    flexDirection: 'row',
+    padding: 15,
+    borderRadius: 30,
+    width: 200,
+    alignItems: "center",
+    justifyContent: 'center',
+  },
+
+  ModalbuttonText: {
+    color: '#FFF',
+    paddingLeft: 15,
+    fontWeight: 'bold',
+    fontSize: 18
+  },
 });
 
 export default ImageVision;
+

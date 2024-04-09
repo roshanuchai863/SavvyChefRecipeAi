@@ -36,6 +36,8 @@ const HomeScreen = ({ navigation }) => {
               <Icon name="search" size={24} color="#FFF" />
               <Text style={styles.buttonText}>Search by Name</Text>
             </TouchableOpacity>
+
+          
           </View>
         </View>
 

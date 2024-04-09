@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, TextInput, TouchableOpacity, FlatList, Text, Alert, Image, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, TextInput, TouchableOpacity, FlatList, Text, Alert, Image, ActivityIndicator, StyleSheet, Modal, SafeAreaView } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { EdamanAPP_ID, EdamanAPP_KEY } from '@env';
 import { useNavigation } from '@react-navigation/native';
@@ -8,93 +8,74 @@ import GlobalContext from './../../Screens/Navigation/GlobalContext';
 import { updateDoc, doc } from 'firebase/firestore';
 import { db } from '../../../Firebase/Config';
 
-const Edaman = () => {
+const Edaman = ({ route }) => {
     const navigation = useNavigation();
     const { userData, userId } = useContext(GlobalContext);
+    const { label } = route.params || { label: '' };
 
 
     const [recipes, setRecipes] = useState([]);
-    const [search, setSearch] = useState('');
+    const [search, setSearch] = useState(Array.isArray(label) ? label.join(", ") : label);
     const [query, setQuery] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const [CurrentCoin, SetCurrentCoin] = useState();
+    const [CurrentCoin, SetCurrentCoin] = useState(10);
+    const [showModal, setShowModal] = useState(true);
+
+   
 
 
     useEffect(() => {
-        SetCurrentCoin(userData.dailyLimit);
-    }, [userData.dailyLimit])
-
-    const resetLocalStorage = async () => {
-        try {
-            await AsyncStorage.clear();
-            console.log('Local storage has been reset.');
-        } catch (error) {
-            console.error('Error resetting local storage:', error);
+        if (userData.dailyLimit) {
+            SetCurrentCoin(userData.dailyLimit);
+            if (userData.dailyLimit >= 3) {
+                setShowModal(false); // Only hide the modal if the user has enough coins
+            } else {
+                Alert.alert("Sorry, You're Running Out of Coins.", "Please Purchase More Coins.");
+            }
         }
-    };
-    useEffect(() => {
-        getRecipes();
-        // resetLocalStorage();
-    }, [query]);
+    }, [userData.dailyLimit]);
 
-    // const getRecipes = async () => {
-    //     const response = await fetch(`https://api.edamam.com/search?q=${query}&app_id=${EdamanAPP_ID}&app_key=${EdamanAPP_KEY}&from=8&to=12&calories=591-722&health=alcohol-free`);
-    //     const data = await response.json();
-    //     setTotalResult(data.to);
-    //     setRecipes(data.hits);
-    // };
+
+
+
 
     useEffect(() => {
-        SetCurrentCoin(userData.dailyLimit);
-    }, [userData.dailyLimit])
+        setSearch(Array.isArray(label) ? label.join(", ") : label);
+    }, [label]);
 
+    console.log("current coin is:", CurrentCoin);
 
     const getRecipes = async () => {
-
+        setQuery(search)
         setIsLoading(true);
         const cacheKey = `edamam-${query}`;
         console.log(`Fetching recipes for query: ${query}`);
         try {
-            if (CurrentCoin == 0) {
-                Alert.alert("Sorry, You're Running Out of Coins.", "Please Purchase More Coins.");
-                return;
-            }
-            else {
-                const updatedDailyLimit = CurrentCoin - 3;
-                const updateUser = {
-                    "Payment.DailyLimit": updatedDailyLimit,
-                };
-    
-                const userDocRef = doc(db, "Personal Details", userId);
-                await updateDoc(userDocRef, updateUser);
 
-
-
-
-                const cachedData = await AsyncStorage.getItem(cacheKey);
-                if (cachedData) {
-                    console.log("Using cached data");
-                    setRecipes(JSON.parse(cachedData));
-                    console.log("cache data:", JSON.parse(cachedData))
+            const cachedData = await AsyncStorage.getItem(cacheKey);
+            if (cachedData) {
+                console.log("Using cached data");
+                setRecipes(JSON.parse(cachedData));
+                console.log("cache data:", JSON.parse(cachedData))
+            } else {
+                console.log("Fetching data from API");
+                const response = await fetch(`https://api.edamam.com/search?q=${query}&app_id=${EdamanAPP_ID}&app_key=${EdamanAPP_KEY}&from=1&to=10&calories=591-722&health=alcohol-free`);
+                const data = await response.json();
+                if (data && data.hits && data.hits.length > 0) {
+                    await AsyncStorage.setItem(cacheKey, JSON.stringify(data.hits));
+                    setRecipes(data.hits);
+                    console.log("fetching API data", data.hits);
                 } else {
-                    console.log("Fetching data from API");
-                    const response = await fetch(`https://api.edamam.com/search?q=${query}&app_id=${EdamanAPP_ID}&app_key=${EdamanAPP_KEY}&from=7&to=10&calories=591-722&health=alcohol-free`);
-                    const data = await response.json();
-                    if (data && data.hits && data.hits.length > 0) {
-                        await AsyncStorage.setItem(cacheKey, JSON.stringify(data.hits));
-                        setRecipes(data.hits);
-                        console.log("fetching API data", data.hits);
-                    } else {
-                        console.log("No data found in API response");
-                        setRecipes([]); // Clear the recipes if no data is found
-                        Alert.alert('No Results', `No recipes found for "${query}"`);
+                    console.log("No data found in API response");
+                    setRecipes([]); // Clear the recipes if no data is found
+                    Alert.alert('No Results', `No recipes found for "${query}"`);
 
-                    }
-                  
                 }
-               
-                }
-            
+
+            }
+
+
+
         } catch (error) {
             console.error("Error fetching recipes:", error);
             setRecipes([]); // Clear the recipes on error
@@ -108,58 +89,76 @@ const Edaman = () => {
 
 
     return (
-        <View style={styles.app}>
-            <View style={styles.header}>
-                <Text style={styles.headerText}>Recipe Finder</Text>
-            </View>
+        <>
 
-            <View style={styles.searchForm}>
-                <TextInput
-                    style={styles.searchBar}
-                    value={search}
-                    onChangeText={setSearch}
-                    placeholder="Search for recipes"
-                    placeholderTextColor="#B1B1B1"
-                />
-                <TouchableOpacity onPress={() => setQuery(search)} style={styles.searchButton}>
-                    <Icon name="search" size={20} color="#FFF" />
-                </TouchableOpacity>
-            </View>
-            {isLoading ? (
-                <>
-                    <ActivityIndicator size="large" color="#EE7214" />
-                    <Text style={{ alignSelf: "center" }}>Loading....</Text>
-                </>
-            ) : (
-                <FlatList
-                    data={recipes}
-                    renderItem={({ item, index }) => (
-                        <TouchableOpacity onPress={() => navigation.navigate('RecipeDetails', { recipe: item.recipe })}>
-                            <View style={styles.recipeCard}>
-                                <Image source={{ uri: item.recipe.image }} style={styles.image} />
-                                <View style={styles.recipeInfo}>
-                                    <Text style={styles.title} numberOfLines={1}>
-                                        {index + 1}. {item.recipe.label}
-                                    </Text>
-                                    {/* Only render strings or elements within Text components */}
-                                    <Text style={styles.ingredients}>
-                                        <Text style={{ fontWeight: "500" }}>Meal Type: </Text>
-                                        {item.recipe.mealType.join(", ")}
-                                    </Text>
-                                    <Text style={styles.ingredients} numberOfLines={3}>
-                                        <Text style={{ fontWeight: "500" }}>Ingredients: </Text>
-                                        {item.recipe.ingredientLines.join(", ")}
-                                    </Text>
+            <View style={styles.app}>
+                <View style={styles.header}>
+                    <Text style={styles.headerText}>Recipe Finder</Text>
+                </View>
+
+                <View style={styles.searchForm}>
+                    <TextInput
+                        style={styles.searchBar}
+                        value={search}
+                        onChangeText={setSearch}
+                        placeholder="Search for recipes"
+                        placeholderTextColor="#B1B1B1"
+                    />
+                    <TouchableOpacity onPress={() => getRecipes()} style={styles.searchButton}>
+                        <Icon name="search" size={20} color="#FFF" />
+                    </TouchableOpacity>
+                </View>
+                {isLoading ? (
+                    <>
+                        <ActivityIndicator size="large" color="#EE7214" />
+                        <Text style={{ alignSelf: "center" }}>Loading....</Text>
+                    </>
+                ) : (
+                    <FlatList
+                        data={recipes}
+                        renderItem={({ item, index }) => (
+                            <TouchableOpacity onPress={() => navigation.navigate('RecipeDetails', { recipe: item.recipe })}>
+                                <View style={styles.recipeCard}>
+                                    <Image source={{ uri: item.recipe.image }} style={styles.image} />
+                                    <View style={styles.recipeInfo}>
+                                        <Text style={styles.title} numberOfLines={1}>
+                                            {index + 1}. {item.recipe.label}
+                                        </Text>
+                                        {/* Only render strings or elements within Text components */}
+                                        <Text style={styles.ingredients}>
+                                            <Text style={{ fontWeight: "500" }}>Meal Type: </Text>
+                                            {item.recipe.mealType.join(", ")}
+                                        </Text>
+                                        <Text style={styles.ingredients} numberOfLines={3}>
+                                            <Text style={{ fontWeight: "500" }}>Ingredients: </Text>
+                                            {item.recipe.ingredientLines.join(", ")}
+                                        </Text>
+                                    </View>
                                 </View>
-                            </View>
 
 
-                        </TouchableOpacity>
-                    )}
-                    keyExtractor={(item, index) => `${index}`}
-                />
-            )}
-        </View>
+                            </TouchableOpacity>
+                        )}
+                        keyExtractor={(item, index) => `${index}`}
+                    />
+                )}
+            </View>
+
+
+
+            <Modal
+                visible={showModal}
+                animationType="fade"
+                transparent={true}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <ActivityIndicator size="large" color="#0000ff" />
+                        <Text style={styles.modalText}>Loading...</Text>
+                    </View>
+                </View>
+            </Modal>
+        </>
     );
 };
 
@@ -256,6 +255,22 @@ const styles = StyleSheet.create({
         color: '#333',
         marginTop: 3,
         textAlign: "left",
+    }, modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        padding: 50,
+        borderRadius: 10,
+        alignItems: 'center',
+    },
+    modalText: {
+        marginTop: 10,
+        fontSize: 16,
+        fontWeight: 'bold',
     },
 });
 

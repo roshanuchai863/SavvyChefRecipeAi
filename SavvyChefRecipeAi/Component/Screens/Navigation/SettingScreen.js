@@ -30,20 +30,21 @@ const SettingScreen = (props) => {
     }
   };
 
-  clearAllData = () => {
+  const clearAllData = async () => {
     try {
-        AsyncStorage.clear(err => {
-            if (err) {
-                console.log("Error clearing AsyncStorage:", err);
-            } else {
-                console.log("All data cleared from AsyncStorage");
-            }
-        });
+      await AsyncStorage.clear();
+      console.log('Local storage has been reset.');
     } catch (error) {
-        console.error('Error clearing AsyncStorage data:', error);
+      console.error('Error resetting local storage:', error);
+      // Handle specific errors like directory deletion errors here
+      if (error.code === 'ENOENT') {
+        console.error('Directory or file does not exist.');
+      } else {
+        console.error('An unexpected error occurred:', error);
+      }
     }
-}
-
+  };
+  
 
 
   // Set profile picture from camera capture or use default
