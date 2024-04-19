@@ -81,7 +81,7 @@ const PaymentScreen = () => {
         try {
             // Update the daily limit in the user's document
             const currentDailyLimit = userData.dailyLimit;
-            const updatedDailyLimit = currentDailyLimit + 60;
+            const updatedDailyLimit = currentDailyLimit + 100;
             const updateUser = {
                 "Payment.DailyLimit": updatedDailyLimit,
                 

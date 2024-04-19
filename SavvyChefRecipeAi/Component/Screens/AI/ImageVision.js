@@ -1,7 +1,4 @@
-
-
-
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { StyleSheet, View, Text, Image, TouchableOpacity, ScrollView, Modal, ActivityIndicator } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import axios from 'axios';
@@ -9,13 +6,23 @@ import * as ImagePicker from 'expo-image-picker';
 import { Clarifai_API_KEY } from "@env"
 import Edaman from './Edaman';
 import { useNavigation } from '@react-navigation/native';
+import GlobalContext from './../../Screens/Navigation/GlobalContext';
+import { updateDoc, doc } from 'firebase/firestore';
+import { db } from '../../../Firebase/Config';
+
+
 
 const ImageVision = () => {
+  const { userData, userId } = useContext(GlobalContext);
   const navigation = useNavigation();
   const [imageUri, setImageUri] = useState(null);
   const [labels, setLabels] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [labelShowModal, SetlabelShowModal] = useState(false);
+  const [CurrentCoin, SetCurrentCoin] = useState();
+ 
+
+
 
   const pickImage = async () => {
     try {
@@ -87,7 +94,7 @@ const ImageVision = () => {
       });
 
       setLabels([correctLabel]);
-
+     await coinChange()// charging coin on every image load
 
       console.log('Correct Label:', correctLabel);
     } catch (error) {
@@ -100,6 +107,25 @@ const ImageVision = () => {
   };
 
 
+  useEffect(() => {
+    if (userData.dailyLimit) {
+      SetCurrentCoin(userData.dailyLimit);
+    }
+  }, [userData.dailyLimit]);
+
+  console.log("current coin is ",CurrentCoin)
+
+  const coinChange = async () => {
+    if (CurrentCoin > 1) {
+      const updatedDailyLimit = CurrentCoin - 1;
+      const updateUser = {
+        "Payment.DailyLimit": updatedDailyLimit,
+      };
+
+      const userDocRef = doc(db, "Personal Details", userId);
+      updateDoc(userDocRef, updateUser);
+    }
+  }
 
 
 
@@ -159,8 +185,8 @@ const ImageVision = () => {
               <View style={styles.recipeSearchButton}>
                 <TouchableOpacity onPress={() => {
                   SetlabelShowModal(false);
-                  navigation.navigate("Edaman" ,{
-                    label:labels
+                  navigation.navigate("Edaman", {
+                    label: labels
                   });
                 }}
                   style={styles.Modalbutton}>

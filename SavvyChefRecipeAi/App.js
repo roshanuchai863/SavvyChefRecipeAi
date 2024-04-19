@@ -5,7 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { doc, onSnapshot } from "firebase/firestore";
 import { auth, onAuthStateChanged, db } from "./Firebase/Config";
 import GlobalContext from './Component/Screens/Navigation/GlobalContext';
-import { Publishable_key, GoogleVision_API_KEY} from '@env'
+import { Publishable_key, GoogleVision_API_KEY } from '@env'
 import { StripeProvider } from '@stripe/stripe-react-native';
 
 
@@ -111,22 +111,22 @@ export default function App() {
     setCameraPictureCapture(null);
   };
 
-  console.log("pb ke",Publishable_key);
+  console.log("pb ke", Publishable_key);
   return (
 
     <NavigationContainer>
 
       {auth.currentUser ? (
         <>
- <GlobalContext.Provider value={{ userData, user, userId, CameraPictureCapture, setCameraPictureCapture, resetGlobalContext }}>
-          <StripeProvider
-            publishableKey={Publishable_key}
-            merchantIdentifier="merchant.com.{{YOUR_APP_NAME}}" // required for Apple Pay
+          <GlobalContext.Provider value={{ userData, user, userId, CameraPictureCapture, setCameraPictureCapture, resetGlobalContext }}>
+            <StripeProvider
+              publishableKey={Publishable_key}
+              merchantIdentifier="merchant.com.{{YOUR_APP_NAME}}" // required for Apple Pay
 
-          >
-            {/* <StripeApp /> */}
-          </StripeProvider>
-         
+            >
+              {/* <StripeApp /> */}
+            </StripeProvider>
+
             <DrawerNavigation />
           </GlobalContext.Provider >
 

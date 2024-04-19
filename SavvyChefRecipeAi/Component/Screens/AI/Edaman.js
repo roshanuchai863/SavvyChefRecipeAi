@@ -18,16 +18,27 @@ const Edaman = ({ route }) => {
     const [search, setSearch] = useState(Array.isArray(label) ? label.join(", ") : label);
     const [query, setQuery] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const [CurrentCoin, SetCurrentCoin] = useState(10);
+    const [CurrentCoin, SetCurrentCoin] = useState();
     const [showModal, setShowModal] = useState(true);
 
-   
 
+    const coinChange = async () => {
+        if (CurrentCoin > 1) {
+            const updatedDailyLimit = CurrentCoin - 1;
+            const updateUser = {
+                "Payment.DailyLimit": updatedDailyLimit,
+            };
+
+            const userDocRef = doc(db, "Personal Details", userId);
+            updateDoc(userDocRef, updateUser);
+        }
+    }
 
     useEffect(() => {
         if (userData.dailyLimit) {
             SetCurrentCoin(userData.dailyLimit);
-            if (userData.dailyLimit >= 3) {
+            if (userData.dailyLimit >= 1) {
+      
                 setShowModal(false); // Only hide the modal if the user has enough coins
             } else {
                 Alert.alert("Sorry, You're Running Out of Coins.", "Please Purchase More Coins.");
@@ -58,13 +69,16 @@ const Edaman = ({ route }) => {
                 setRecipes(JSON.parse(cachedData));
                 console.log("cache data:", JSON.parse(cachedData))
             } else {
+                
                 console.log("Fetching data from API");
-                const response = await fetch(`https://api.edamam.com/search?q=${query}&app_id=${EdamanAPP_ID}&app_key=${EdamanAPP_KEY}&from=1&to=10&calories=591-722&health=alcohol-free`);
+                const response = await fetch(`https://api.edamam.com/search?q=${query}&app_id=${EdamanAPP_ID}&app_key=${EdamanAPP_KEY}&from=1&to=60&calories=591-722&health=alcohol-free`);
                 const data = await response.json();
                 if (data && data.hits && data.hits.length > 0) {
+
                     await AsyncStorage.setItem(cacheKey, JSON.stringify(data.hits));
                     setRecipes(data.hits);
                     console.log("fetching API data", data.hits);
+                    coinChange() // charge coin for every query 
                 } else {
                     console.log("No data found in API response");
                     setRecipes([]); // Clear the recipes if no data is found
@@ -274,5 +288,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default Edaman;
-
+export default Edaman;  
